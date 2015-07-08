@@ -35,9 +35,10 @@ function getLong(p::Price, precision::Int)
   if precision == p.precision
     return p.priceLong
   elseif precision > p.precision
-    return p.priceLong * 10^(precision-p.precision)
+    p.priceLong * 10^(precision - p.precision)
   else
-    error("Reducing precision in Price")
+    # warn("Reducing precision in Price: ", p)
+    round(Int, p.priceLong / 10^(p.precision - precision))
   end
 end
 

@@ -47,7 +47,7 @@ row(M::AMat, i::Integer) = rowvec_view(M, i)
 col(M::AMat, i::Integer) = view(M, :, i)
 column(M::AMat, i::Integer) = view(M, :, i)
 
-rows(M::AMat, rng::AVecI) = view(M, rng)
+rows(M::AMat, rng::AVecI) = view(M, rng, :)
 cols(M::AMat, rng::AVecI) = view(M, :, rng)
 columns(M::AMat, rng::AVecI) = view(M, :, rng)
 
@@ -59,23 +59,25 @@ column!{T}(M::AMat{T}, i::Integer, v::AVec{T}) = (M[:,i] = v; nothing)
 nrows(a::AbstractArray) = size(a,1)
 ncols(a::AbstractArray) = size(a,2)
 
-addOnesColumn(mat::AMatF) = hcat(mat, ones(size(mat, 1)))
-addOnesColumn(vec::AVecF) = hcat(vec, ones(length(vec)))
-mat(v::Vector) = reshape(v, length(v), 1)
+addOnes{T<:Number}(v::AVec{T}) = vcat(v, one(T)) #hcat(v, ones(length(v)))
+addOnes{T<:Number}(m::AMat{T}) = hcat(m, ones(T, nrows(m)))
+
+mat(m::AMat) = m
+mat(v::AVec) = reshape_view(v, (length(v),))
 
 # --------------------------------------------------------------------------------------
 
 getPctOfInt(pct::Real, T::Integer) = round(Int, max(0., min(1., pct)) * T)
 
-function splitRange(pct::Real, T::Integer)
+function splitRange(T::Integer, pct::Real)
   lastin = getPctOfInt(pct,T)
   1:lastin, lastin+1:T
 end
 
-function splitMatrixRows(mat::AMat, pct::Real)
-  rng1, rng2 = splitRange(pct, nrows(mat))
-  rows(mat,rng1), rows(mat,rng2)
+function splitMatrixRows(m::AMat, pct::Real)
+  rng1, rng2 = splitRange(nrows(m), pct)
+  rows(m,rng1), rows(m,rng2)
 end
 
-stringfloat(v::FloatingPoint, prec::Integer = 3) = Formatting.format(v, precision = prec)
+stringfloat(v::FloatingPoint, prec::Integer = 3) = format(v, precision = prec)
 stringfloats(v::AVecF, prec::Integer = 3) = string("[", join(map(x->stringfloat(x,prec), v), ", "), "]")

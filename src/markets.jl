@@ -8,7 +8,6 @@ const marketCloseUS = TimeOfDay("16")
 
 
 @enum Exchange NOEXCHANGE EDGX EDGA
-const NUMEXCHANGE = length(Exchange)
 exchange(s::String) = eval(symbol(s))
 exchange(e::Exchange) = string(e)
 

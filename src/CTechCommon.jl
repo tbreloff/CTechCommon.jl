@@ -1,17 +1,13 @@
 module CTechCommon
 
 
-if VERSION < v"0.4-"
-    import Dates
-else
-    import Base.Dates
-end
-
 using Reexport
 @reexport using QuickStructs
 @reexport using ArrayViews
 
+import Base.Dates
 import Calendar
+import Formatting: format
 
 # ----------------------------------------------------------
 
@@ -52,7 +48,7 @@ export
   column!,
   ncols,
   nrows,
-  addOnesColumn,
+  addOnes,
   mat,
   getPctOfInt,
   splitRange,
@@ -128,17 +124,6 @@ include("trie.jl")
 # ---------------------------------------
 
 export
-  leastsquares,
-  logit,
-  invlogit,
-  regressLogit,
-  reduceEigMatrix
-
-include("linalg.jl")
-
-# ---------------------------------------
-
-export
   LOG,
   @LOG,
   ERROR,
@@ -168,6 +153,7 @@ export
   getProvideFee,
   getFee,
   getPriceAdjustmentFromFee,
+  EXCH_SORTED_BY_TAKE_FEE,
   OID,
   UID,
   iszero,

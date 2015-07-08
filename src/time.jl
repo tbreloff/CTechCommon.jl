@@ -16,9 +16,9 @@ const nanosInOneDay = nanosInOneSecond * secondsInOneDay
 # NOW() = TimeOfDay("0")
 function NOW()
   n = now()
-  h = Base.Dates.hour(n)
-  m = Base.Dates.minute(n)
-  s = Base.Dates.second(n)
+  h = Dates.hour(n)
+  m = Dates.minute(n)
+  s = Dates.second(n)
   TimeOfDay(h * nanosInOneHour + m * nanosInOneMinute + s * nanosInOneSecond)
 end
 
@@ -55,25 +55,29 @@ function calcSecondsEpochToMidnight(secondsSinceEpoch::Integer)
   return UInt64((millisMidnightEST - getEpochMillis()) / millisInOneSecond)
 end
 
-
-# assuming we are given # seconds since UTC epoch, convert that to # seconds since midnight for US/Eastern timezone
 function convertSecondsSinceEpochToSecondsSinceMidnight(secondsSinceEpoch::Integer)
-
-  dt = createUTCDateTimeFromSecondsSinceEpoch(secondsSinceEpoch)
-
-  # get the hour adjustment using the Calendar module
-  y = Dates.year(dt)
-  m = Dates.month(dt)
-  d = Dates.day(dt)
-  hourAdjustment = getHoursAdjustmentFromUTC(y, m, d)
-
-  # get a datetime for midnight
-  dtMidnightMillis::UInt64 = DateTime(y, m, d).instant.periods.value
-
-  # now subtract the diff in UTC at midnight vs UTC now, then subtract the timezone adjustment
-  secondsSinceMidnight = (dt.instant.periods.value - dtMidnightMillis) / millisInOneSecond - hourAdjustment * secondsInOneHour
-  return UInt64(secondsSinceMidnight)
+  secondsSinceEpoch - calcSecondsEpochToMidnight(secondsSinceEpoch)
 end
+
+
+# # assuming we are given # seconds since UTC epoch, convert that to # seconds since midnight for US/Eastern timezone
+# function convertSecondsSinceEpochToSecondsSinceMidnight(secondsSinceEpoch::Integer)
+
+#   dt = createUTCDateTimeFromSecondsSinceEpoch(secondsSinceEpoch)
+
+#   # get the hour adjustment using the Calendar module
+#   y = Dates.year(dt)
+#   m = Dates.month(dt)
+#   d = Dates.day(dt)
+#   hourAdjustment = getHoursAdjustmentFromUTC(y, m, d)
+
+#   # get a datetime for midnight
+#   dtMidnightMillis::UInt64 = DateTime(y, m, d).instant.periods.value
+
+#   # now subtract the diff in UTC at midnight vs UTC now, then subtract the timezone adjustment
+#   secondsSinceMidnight = (dt.instant.periods.value - dtMidnightMillis) / millisInOneSecond - hourAdjustment * secondsInOneHour
+#   return UInt64(secondsSinceMidnight)
+# end
 
 
 #############################################

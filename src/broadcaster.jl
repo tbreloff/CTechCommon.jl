@@ -39,9 +39,9 @@ type ListenerFilter
 	nrows::Int
 	ncols::Int
 
-	function ListenerFilter(maxuid::Int)
-		nr = maxuid+1
-		nc = NUMEXCHANGE
+	function ListenerFilter(maxuid::Integer)
+		nr = maxuid + 1
+		nc = typemax(Exchange).val + 1
 		a = Array(Vector{Any}, nr, nc)
 		for r in 1:nr
 			for c in 1:nc
@@ -54,7 +54,7 @@ end
 
 function addListener(lf::ListenerFilter, listener, items1::VecI = Int[], items2::VecI = Int[])
 	rows = (length(items1) == 0 ? [lf.maxuid+1] :  items1)
-	cols = (length(items2) == 0 ? [NUMEXCHANGE] : items2)
+	cols = (length(items2) == 0 ? [typemax(Exchange).val+1] : items2)
 	for r in rows
 		for c in cols
 			# println("$r $c $rows $cols")
@@ -85,7 +85,7 @@ Base.show(io::IO, b::Broadcaster) = print(io, string(b))
 # set up a const global (singleton) BROADCASTER
 const BROADCASTER = Broadcaster()
 
-function initBroadcaster(maxuid::Int)
+function initBroadcaster(maxuid::Integer)
 	BROADCASTER.maxuid = maxuid
 	BROADCASTER.registry = Dict{Function, ListenerFilter}()
 end
@@ -93,7 +93,7 @@ end
 
 # function listen(bc::Broadcaster, f::Function, listener, items1::Vector{UID} = UID[], items2::Vector{Exchange} = Exchange[])
 function listenfor(f::Function, listener, items1::Vector{UID} = UID[], items2::Vector{Exchange} = Exchange[])
-	LOG(DEBUG, "listenfor: $f $listener")
+	DEBUG("listenfor: $f $listener")
 	lf = get!(BROADCASTER.registry, f, ListenerFilter(BROADCASTER.maxuid))
 	addListener(lf, listener, round(Int, items1), [Int(exch.val) for exch in items2])
 end
