@@ -52,5 +52,3 @@ function reduceEigMatrix(eigvals::AVecF, eigvecs::AMatF, T::Integer, confidence:
   eigvecs[:, 1:r]'
 end
 
-
-end

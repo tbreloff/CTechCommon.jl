@@ -15,6 +15,13 @@ import Calendar
 
 # ----------------------------------------------------------
 
+export
+  @createIOMethods,
+  @pretty
+
+include("macros.jl")
+
+# ---------------------------------------
 
 export 
   AVec,
@@ -55,6 +62,8 @@ export
 
 include("arrays.jl")
 
+# ---------------------------------------
+
 export
   wrap,
   unwrap,
@@ -63,6 +72,90 @@ export
   returntrue
 
 include("misc.jl")
+
+# ---------------------------------------
+
+export
+  Price
+
+include("price.jl")
+
+# ---------------------------------------
+
+export
+  millisInOneSecond,
+  microsInOnSecond,
+  nanosInOneSecond,
+  nanosInOneMilli,
+  nanosInOneMicro,
+  secondsInOneMinute,
+  secondsInOneHour,
+  secondsInOneDay,
+  nanosInOneMinute,
+  nanosInOneHour,
+  nanosInOneDay,
+  NOW,
+  TimeOfDay,
+  NegativeTimeOfDayError
+
+include("time.jl")
+
+# ---------------------------------------
+
+export
+  FixedLengthSymbol,
+  Symbol6,
+  Symbol8
+
+include("fixedsym.jl")
+
+# ---------------------------------------
+
+export 
+  BufferedIOStream
+
+include("bufio.jl")
+
+# ---------------------------------------
+
+export
+  TrieChar,
+  TrieNode,
+  buildTrie
+
+include("trie.jl")
+
+# ---------------------------------------
+
+export
+  leastsquares,
+  logit,
+  invlogit,
+  regressLogit,
+  reduceEigMatrix
+
+include("linalg.jl")
+
+# ---------------------------------------
+
+export
+  LOG,
+  @LOG,
+  ERROR,
+  @ERROR,
+  DEBUG,
+  @DEBUG,
+  log_severity,
+  log_severity!,
+  log_io,
+  log_io!,
+  Info,
+  Error,
+  Debug
+
+include("logger.jl")
+
+# ---------------------------------------
 
 export 
   Exchange,
@@ -85,54 +178,15 @@ export
 
 include("markets.jl")
 
-export
-  Price
-
-include("price.jl")
+# ---------------------------------------
 
 export
-  millisInOneSecond,
-  microsInOnSecond,
-  nanosInOneSecond,
-  nanosInOneMilli,
-  nanosInOneMicro,
-  secondsInOneMinute,
-  secondsInOneHour,
-  secondsInOneDay,
-  nanosInOneMinute,
-  nanosInOneHour,
-  nanosInOneDay,
-  NOW,
-  TimeOfDay,
-  NegativeTimeOfDayError
+  initBroadcaster,
+  listenfor,
+  broadcastto
 
-include("time.jl")
-
-export 
-  BufferedIOStream
-
-include("bufio.jl")
-
-export
-  TrieChar,
-  TrieNode,
-  buildTrie
-
-include("trie.jl")
-
-export
-  leastsquares,
-  logit,
-  invlogit,
-  regressLogit,
-  reduceEigMatrix
-
-include("linalg.jl")
-
-# TODO: export
-include("logger.jl")
-
-# TODO: export
 include("broadcaster.jl")
+
+# ---------------------------------------
 
 end # module

@@ -1,5 +1,8 @@
 using CTechCommon
-using Base.Test
+using FactCheck
 
-# write your own tests here
-@test 1 == 1
+facts("Logger") do
+  @fact log_severity() => Info
+  @fact log_io() => STDOUT
+
+end

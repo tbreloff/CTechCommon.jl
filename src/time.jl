@@ -13,7 +13,14 @@ const nanosInOneDay = nanosInOneSecond * secondsInOneDay
 
 
 # NOTE: this might be overridden for simulations
-NOW() = TimeOfDay("0")
+# NOW() = TimeOfDay("0")
+function NOW()
+  n = now()
+  h = Base.Dates.hour(n)
+  m = Base.Dates.minute(n)
+  s = Base.Dates.second(n)
+  TimeOfDay(h * nanosInOneHour + m * nanosInOneMinute + s * nanosInOneSecond)
+end
 
 
 calcSecondsSinceMidnight(hour::Int, minute::Int) = hour * secondsInOneHour + secondsInOneMinute
@@ -85,7 +92,7 @@ immutable TimeOfDay <: Number
       throw(NegativeTimeOfDayError{T}(val))
       # error("TimeOfDay constructor is negative! $val")
     end
-    new(max(0, round(Int, val)))
+    new(round(Int, val))
   end
 end
 
