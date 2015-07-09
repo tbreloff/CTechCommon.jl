@@ -1,41 +1,12 @@
 
-# create print/show methods, assuming string(typ) is defined
-macro createIOMethods(typ::Symbol)
-  sym = symbol(string(typ,"_obj"))
-  expressions = Expr[]
-  push!(expressions, :(Base.print(io::IO, $sym::$typ) = print(io, string($sym))))
-  push!(expressions, :(Base.show(io::IO, $sym::$typ) = print(io, string($typ,"{",$sym,"}"))))
-  # TODO: add write?
-  [eval(e) for e in expressions]
-end
-
-
-# # add a string function which nicely shows the fields of a composite
-# macro pretty(expr::Expr)
-
-#   eval(expr)
-
-#   structType, fields = getStructTypeAndFields(expr)
-#   strExpr = :(string(string($structType),"{"))
-#   for (i,f) in enumerate(fields)
-#     fn = f[1]
-#     sep = i>1 ? ", " : ""
-#     ss = "$sep$fn="
-#     push!(strExpr.args, :($ss))
-#     push!(strExpr.args, :(xxx.$fn))
-#   end
-#   push!(strExpr.args, :("}"))
-
-#   @eval Base.string(xxx::$structType) = $strExpr
-#   @eval Base.print(io::IO, xxx::$structType) = print(io::IO, string(xxx))
-#   @eval Base.show(io::IO, xxx::$structType) = print(io::IO, string(xxx))
-# end
 
 
 using Base.Meta: isexpr
 
-function getStructTypeAndFields(expr)
+# ------------------------------------------------------------------
 
+
+function getStructTypeAndFields(expr)
   if !isexpr(expr, :type)
     error("trying to create constructor for non-type expression")
   end
@@ -56,15 +27,68 @@ function getStructTypeAndFields(expr)
   end
 
   return structType, fields
+end
 
+function makebody(structType, args)
+  body = :($structType())
+  append!(body.args, args)
+  body
+end
+
+# create a new bitstype value by converting a UInt8 pointer to a "ftype" pointer, then load from the pointer
+function loadFunction(ftype, s)
+  :(unsafe_load(convert(Ptr{$ftype}, pointer(buf,pos+$s))))
 end
 
 
-macro pretty(expr::Expr)
+# ------------------------------------------------------------------
+
+# this macro takes a type definition expression and creates a custom constructor
+# to read in from an IO source that is packed binary data
+macro packedStruct(expr)
+
   structType, fields = getStructTypeAndFields(expr)
-  # show(structType); println()
+  fieldTypes = [f[2] for f in fields]
+
+  # create constructors
+  defaultConstructorBody = makebody(structType, [:(zero($ft)) for ft in fieldTypes])
+  readIOConstructorBody = makebody(structType, [:(read(io, $ft)) for ft in fieldTypes])
+
+  # create the reinterpret function to construct from a position in a byte array
+  fsizes = [@eval sizeof($ft) for ft in fieldTypes]
+  spos = vcat(1, cumsum(fsizes)[1:end-1] + 1)
+  reinterpretBody = makebody(structType, [loadFunction(ft,spos[i]) for (i,ft) in enumerate(fieldTypes)])
+
+  # now return the full expression
+  # note: the whole thing is escaped so that this block is executed in calling scope
+  # note: "esc(expression)" executes in calling scope, whereas "expression" executes in macro scope
+  esc(quote
+    $expr
+    $structType() = $defaultConstructorBody
+    $structType(io::IO) = $readIOConstructorBody
+    Base.reinterpret(::Type{$structType}, buf::ABytes, pos::Integer) = $reinterpretBody
+    getPackedStructSize(::Type{$structType}) = $(sum(fsizes))
+  end)
+end
 
 
+# ------------------------------------------------------------------
+
+# create print/show methods, assuming string(typ) is defined
+macro createIOMethods(typ::Symbol)
+  esc(quote
+    Base.print(io::IO, o::$typ) = print(io, string(o))
+    Base.show(io::IO, o::$typ) = print(io, string(o))
+  end)
+end
+
+# ------------------------------------------------------------------
+
+macro pretty(expr::Expr)
+
+  structType, fields = getStructTypeAndFields(expr)
+
+  # create a string() expression and add "$sep$fieldname: $fieldexpr" for each field
   strExpr = :(string())
   for (i,f) in enumerate(fields)
     fn = f[1]
@@ -73,21 +97,13 @@ macro pretty(expr::Expr)
     push!(strExpr.args, :($ss))
     push!(strExpr.args, :(xxx.$fn))
   end
-  # push!(strExpr.args, :("}"))
-  # show(strExpr)
-  # println()
 
-  blk = quote
-    $expr
+  # return the original type expression, along with the new methods to be added
+  quote
+    $(esc(expr))
     Base.string(xxx::$(esc(structType))) = string($(string(structType)), "{", $strExpr, "}")
     Base.print(io::IO, xxx::$(esc(structType))) = print(io, string(xxx))
     Base.show(io::IO, xxx::$(esc(structType))) = print(io, string(xxx))
   end
-
-  # show(blk)
-  # println()
-
-  push!(blk.args, :nothing)
-  blk.head = :toplevel
-  blk
 end
+

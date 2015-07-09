@@ -12,6 +12,7 @@ import Formatting: format
 # ----------------------------------------------------------
 
 export
+  @packedStruct,
   @createIOMethods,
   @pretty
 
