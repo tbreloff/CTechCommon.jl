@@ -33,12 +33,12 @@ immutable LogSeverity
 	val::Int
 end
 
-const Debug = LogSeverity(0)
-const Info = LogSeverity(1)
-const Error = LogSeverity(2)
+const DebugSeverity = LogSeverity(0)
+const InfoSeverity = LogSeverity(1)
+const ErrorSeverity = LogSeverity(2)
 
 
-Base.string(sev::LogSeverity) = (sev == Debug ? "Debug" : (sev == Info ? "Info" : "Error"))
+Base.string(sev::LogSeverity) = (sev == DebugSeverity ? "Debug" : (sev == InfoSeverity ? "Info" : "Error"))
 Base.print(io::IO, sev::LogSeverity) = print(io, string(sev))
 Base.show(io::IO, sev::LogSeverity) = print(io, string(sev))
 Base.isless(sev1::LogSeverity, sev2::LogSeverity) = sev1.val < sev2.val
@@ -50,7 +50,7 @@ type SevObj
   io::IO
 end
 
-const LOG_SEVERITY = SevObj(Info, STDOUT)
+const LOG_SEVERITY = SevObj(InfoSeverity, STDOUT)
 
 log_severity() = LOG_SEVERITY.sev
 log_severity!(sev::LogSeverity) = (LOG_SEVERITY.sev = sev; nothing)
@@ -61,9 +61,9 @@ log_io!(io::IO) = (LOG_SEVERITY.io = io; nothing)
 
 # --------------------------------------------------------
 
-LOG(args...) = LOG(Info, args...)
-DEBUG(args...) = LOG(Debug, args...)
-ERROR(args...) = LOG(Error, args...)
+LOG(args...) = LOG(InfoSeverity, args...)
+DEBUG(args...) = LOG(DebugSeverity, args...)
+ERROR(args...) = LOG(ErrorSeverity, args...)
 
 function LOG(sev::LogSeverity, args...)
 	if sev >= log_severity()
@@ -79,9 +79,9 @@ end
 
 # note: the macro version give "x: xval" for "@LOG x"
 
-# default to Info
+# default to InfoSeverity
 macro LOG(symbols...)
-  expr = :(LOG(Info))
+  expr = :(LOG(InfoSeverity))
   for s in symbols
     push!(expr.args, "$s:")
     push!(expr.args, esc(s))
@@ -90,7 +90,7 @@ macro LOG(symbols...)
 end
 
 macro ERROR(symbols...)
-  expr = :(LOG(Error))
+  expr = :(LOG(ErrorSeverity))
   for s in symbols
     push!(expr.args, "$s:")
     push!(expr.args, esc(s))
@@ -99,7 +99,7 @@ macro ERROR(symbols...)
 end
 
 macro DEBUG(symbols...)
-  expr = :(LOG(Debug))
+  expr = :(LOG(DebugSeverity))
   for s in symbols
     push!(expr.args, "$s:")
     push!(expr.args, esc(s))

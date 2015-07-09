@@ -140,9 +140,9 @@ export
   log_severity!,
   log_io,
   log_io!,
-  Info,
-  Error,
-  Debug
+  DebugSeverity,
+  InfoSeverity,
+  ErrorSeverity
 
 include("logger.jl")
 
