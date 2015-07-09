@@ -15,6 +15,8 @@ typealias MatI Matrix{Int}
 typealias ABytes AVec{UInt8}
 typealias Bytes Vector{UInt8}
 
+typealias IntIterable AVecI
+typealias FloatIterable AVecF
 
 ####################################################
 

@@ -33,6 +33,8 @@ export
   MatI,
   ABytes,
   Bytes,
+  IntIterable,
+  FloatIterable,
   foreach,
   getith,
   unzip,
