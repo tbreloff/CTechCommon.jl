@@ -1,54 +1,22 @@
 
 import FastAnonymous
 
-
-# filter on (Nullable(v1), Nullable(v2))??
-
-# # any Filters need to map a type to an index.  index 0 equates to "no filter"
-# immutable Filter{T} end
-# mapToIndex(f::Filter{UID}, val::UID) = Int(val)
-# mapToIndex(f::Filter{Exchange}, val::Exchange) = Int(val.val)
-
-
-
-# both a Router (broadcast side) and a Subscriber register interest with the HUB
+export
+  Filters,
+  Publisher,
+  publish,
+  subscribe,
+  unregister
 
 # -----------------------------------------------------------------------
+# -----------------------------------------------------------------------
 
-immutable Filterable{T}
-  val::T
-end
-
-immutable FilterSet{T}
-  vals::Set{Filterable{T}}
-end
-Filter{T}(vals::T...) = Filter(Set(map(Filterable,vals)))
 
 immutable Filters
-  d::Dict{Symbol,FilterSet}
+  d::Dict{Symbol,Set}
 end
-Filters() = Filters(Dict{Symbol,Filter}())
-Filters(filterpairs::Tuple{Symbol,Filter}...) = Filters(Dict(filterpairs...))
-Filters(filterlists::Vector...) = Filters(map(x->(x[1],Filter(x[2:end]...)), filterlists)...)
-
-# -----------------------------------------------------------------------
-
-"""
-broadcast should, as quickly as possible, map to subscribers methods for a given argument list.
-
-lets try using a FastAnonymous @anon function, and swap out the args
-  anonf = @anon args -> functionName(receivingObject, args...)
-
-
-can we store the list of subscribers directly for a given filters/function pair?
-maybe there should be "listening" and "broadcast" methods which register with the --- 
-
-
-how about: @broadcast is a macro call at the code-site... the macro expands to: 
-  register gensym-ed function with the BROADCASTER
-  return direct function call on the 
-"""
-
+Filters() = Filters(Dict{Symbol,Set}())
+Filters(filterlists::Vector...) = Filters(Dict{Symbol,Set}(map(x->(x[1],Set(x[2:end])), filterlists)...))
 
 # -----------------------------------------------------------------------
 
@@ -77,7 +45,8 @@ immutable Subscriber
   filter::Filters  # TODO: do we need this here?
 end
 
-function subscribe(f::Function, listener, filters::Filters)
+# call this to start listening
+function subscribe(f::Function, listener, filters::Filters = Filters())
   # create a placeholder anonymous function, then swap out the 
   # function and listener before it gets compiled
   anonfun = FastAnonymous.@anon args -> tmpf(0, args...)
@@ -90,11 +59,11 @@ end
 # -----------------------------------------------------------------------
 
 immutable Hub
-  subscribers::Vector{Subscriber}
-  publishers::Vector{Publisher}
+  subscribers::Set{Subscriber}
+  publishers::Set{Publisher}
 end
 
-const HUB = Hub(Subscriber[], Publisher[])
+const HUB = Hub(Set{Subscriber}(), Set{Publisher}())
 
 function register(subscriber::Subscriber)
   # add to subscribers list
@@ -110,6 +79,26 @@ function register(subscriber::Subscriber)
   return
 end
 
+function unregister(subscriber::Subscriber)
+  delete!(HUB.subscribers, subscriber)
+
+  for publisher in HUB.publishers
+
+    # TODO: this should be a simple "delete!" call, but doesn't work for vectors
+    delidx = 0
+    for (i,anonfun) in enumerate(publisher.anonfuns)
+      if anonfun === subscriber.anonfun
+        delidx = i
+        break
+      end
+    end
+    deleteat!(publisher.anonfuns, delidx)
+
+  end
+end
+
+
+
 function register(publisher::Publisher)
   # add to publishers list
   push!(HUB.publishers, publisher)
@@ -124,6 +113,11 @@ function register(publisher::Publisher)
   return publisher
 end
 
+function unregister(publisher::Publisher)
+  delete!(HUB.publishers, publisher)
+end
+
+
 
 function matches(publisher::Publisher, subscriber::Subscriber)
   # return instantly if it's not the right function
@@ -133,7 +127,13 @@ function matches(publisher::Publisher, subscriber::Subscriber)
   #   1) doesn't have a filter for that symbol, or
   #   2) has a non-empty intersection between the filter sets for that symbol
   # if both are false, return false
-  # TODO!!
+  for (filterkey, pubset) in publisher.filters.d
+    if haskey(subscriber.filters.d, filterkey)
+      # both sub and pub have this filter key... if the values don't overlap then there's no match
+      subscriberset = subscriber.filters.d[filterkey]
+      isempty(intesect(pubset, subscriberset)) && return false
+    end
+  end
 
   # if we got this far, return true
   return true
