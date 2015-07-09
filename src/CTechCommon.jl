@@ -75,7 +75,8 @@ include("misc.jl")
 # ---------------------------------------
 
 export
-  Price
+  Price,
+  makePrice
 
 include("price.jl")
 
@@ -95,7 +96,8 @@ export
   nanosInOneDay,
   NOW,
   TimeOfDay,
-  NegativeTimeOfDayError
+  NegativeTimeOfDayError,
+  calcSecondsEpochToMidnight
 
 include("time.jl")
 
@@ -111,7 +113,8 @@ include("fixedsym.jl")
 # ---------------------------------------
 
 export 
-  BufferedIOStream
+  BufferedIOStream,
+  getPackedStructSize
 
 include("bufio.jl")
 

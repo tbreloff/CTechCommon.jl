@@ -82,6 +82,8 @@ function fillBuffer!(bufio::BufferedIOStream)
 	end
 end
 
+getPackedStructSize() = 0
+
 function Base.read!{T}(bufio::BufferedIOStream, ::Type{T})
 	structSize = getPackedStructSize(T)
 	ensureDataIsInBuffer!(bufio, structSize)
