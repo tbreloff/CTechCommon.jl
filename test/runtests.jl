@@ -146,5 +146,13 @@ facts("broadcaster") do
 
 end
 
+facts("pubsub") do
+  # TODO test: 
+  #   various filters
+  #   ordering of connections
+  #   function types, argument lists
+  #   unregistering
+end
+
 
 FactCheck.exitstatus()

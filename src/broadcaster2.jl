@@ -8,6 +8,33 @@ export
   subscribe,
   unregister
 
+"""
+Implements a pub-sub model, where you can subscribe to a feed with an optional set of filters
+and get only those callbacks where all your filterset overlaps with the matching filterset 
+of the publisher.  Once registered, filters are fixed.  You must unregister and then register
+again to update filters.
+
+# this will set up and register a publisher which matches subscribers listening for UID(1) and EDGX
+# and also subscribers that don't filter on those filterkeys
+pub = Publisher(somefunction, Filters([:uid, UID(1)], [:exch, EDGX]))
+
+# this subscribes the receiving object on all callbacks to somefunction.  the callbacks will occur
+# whenever there is a publish command on somefunction with uid filter that includes either UID(1) or UID(2)
+sub = subscribe(somefunction, recvObject, Filters([:uid, UID(1), UID(2)]))
+
+# this generates all the callbacks for connected listeners, effectively calling:
+#     somefunction(recvObject, args...)
+# for each connected subscriber
+publish(pub, args...)
+
+# done listening...
+unregister(sub)
+
+# done publishing
+unregister(pub)
+
+"""
+
 # -----------------------------------------------------------------------
 # -----------------------------------------------------------------------
 
@@ -41,8 +68,9 @@ end
 
 immutable Subscriber
   f::Function
-  anonfun::FastAnonymous.Fun  # this is what's actually called
-  filter::Filters  # TODO: do we need this here?
+  listener
+  anonfun::FastAnonymous.Fun  # this is the function that's actually called
+  filter::Filters
 end
 
 # call this to start listening
@@ -53,7 +81,7 @@ function subscribe(f::Function, listener, filters::Filters = Filters())
   anonfun.ast.args[2].args[1] = f
   anonfun.ast.args[2].args[2] = listener
 
-  register(Subscriber(f, anonfun, filters))
+  register(Subscriber(f, listener, anonfun, filters))
 end
 
 # -----------------------------------------------------------------------
@@ -76,7 +104,7 @@ function register(subscriber::Subscriber)
     end
   end
 
-  return
+  subscriber
 end
 
 function unregister(subscriber::Subscriber)
@@ -110,7 +138,7 @@ function register(publisher::Publisher)
     end
   end
 
-  return publisher
+  publisher
 end
 
 function unregister(publisher::Publisher)
