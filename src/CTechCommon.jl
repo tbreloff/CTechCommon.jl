@@ -95,12 +95,22 @@ export
   nanosInOneMinute,
   nanosInOneHour,
   nanosInOneDay,
-  NOW,
   TimeOfDay,
   NegativeTimeOfDayError,
-  calcSecondsEpochToMidnight
+  calcSecondsEpochToMidnight,
+  currentTimeOfDay
 
 include("time.jl")
+
+# ---------------------------------------
+
+export
+  NOW,
+  schedule_do,
+  initScheduler,
+  stopScheduler
+
+include("scheduler.jl")
 
 # ---------------------------------------
 

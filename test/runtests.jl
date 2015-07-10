@@ -73,6 +73,13 @@ end
 
 
 facts("time") do
+  # function jacob_calcSecondsEpochToMidnight(secondsSinceEpoch::Integer)
+  #   utc = DateTime(Date(Dates.unix2datetime(secondsSinceEpoch)))
+  #   adjustment = Dates.Second(div(Dates.value(now() - now(Dates.UTC)),1000))
+  #   return Dates.value(utc+adjustment)
+  # end
+
+  
 end
 
 

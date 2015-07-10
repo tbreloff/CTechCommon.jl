@@ -12,9 +12,8 @@ const nanosInOneHour = nanosInOneSecond * secondsInOneHour
 const nanosInOneDay = nanosInOneSecond * secondsInOneDay
 
 
-# NOTE: this might be overridden for simulations
-# NOW() = TimeOfDay("0")
-function NOW()
+
+function currentTimeOfDay()
   n = now()
   h = Dates.hour(n)
   m = Dates.minute(n)
