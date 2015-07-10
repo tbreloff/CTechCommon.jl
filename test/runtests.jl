@@ -89,13 +89,13 @@ end
 
 
 facts("Logger") do
-  @fact log_severity() => Info
+  @fact log_severity() => InfoSeverity
   @fact log_io() => STDOUT
-  log_severity!(Debug)
-  @fact log_severity() => Debug
-  log_severity!(Error)
-  @fact log_severity() => Error
-  log_severity!(Info)
+  log_severity!(DebugSeverity)
+  @fact log_severity() => DebugSeverity
+  log_severity!(ErrorSeverity)
+  @fact log_severity() => ErrorSeverity
+  log_severity!(InfoSeverity)
 end
 
 
@@ -118,33 +118,35 @@ type TmpVal; val::Int; end
 updatetmp(tmpval::TmpVal, newval::Integer) = (tmpval.val = newval; nothing)
 
 
-facts("broadcaster") do
-  initBroadcaster(2)
-  tmpval = TmpVal(0)
-  @fact tmpval.val => 0
-  listenfor(updatetmp, tmpval, UID(1))
+# facts("broadcaster") do
+#   initBroadcaster(2)
+#   tmpval = TmpVal(0)
+#   @fact tmpval.val => 0
+#   listenfor(updatetmp, tmpval, UID(1))
 
-  broadcastto(updatetmp, (UID(2),NOEXCHANGE), 5)
-  @fact tmpval.val => 0
-  broadcastto(updatetmp, (UID(1),NOEXCHANGE), 5)
-  @fact tmpval.val => 5
-  broadcastto(updatetmp, (UID(0),NOEXCHANGE), 10)
-  @fact tmpval.val => 10
+#   broadcastto(updatetmp, (UID(2),NOEXCHANGE), 5)
+#   @fact tmpval.val => 0
+#   broadcastto(updatetmp, (UID(1),NOEXCHANGE), 5)
+#   @fact tmpval.val => 5
+#   broadcastto(updatetmp, (UID(0),NOEXCHANGE), 10)
+#   @fact tmpval.val => 10
 
 
-  initBroadcaster(2)
-  tmpval = TmpVal(0)
-  @fact tmpval.val => 0
-  listenfor(updatetmp, tmpval, EDGX)
+#   initBroadcaster(2)
+#   tmpval = TmpVal(0)
+#   @fact tmpval.val => 0
+#   listenfor(updatetmp, tmpval, EDGX)
 
-  broadcastto(updatetmp, (UID(2),EDGA), 5)
-  @fact tmpval.val => 0
-  broadcastto(updatetmp, (UID(1),EDGX), 5)
-  @fact tmpval.val => 5
-  broadcastto(updatetmp, (UID(0),NOEXCHANGE), 10)
-  @fact tmpval.val => 10
+#   broadcastto(updatetmp, (UID(2),EDGA), 5)
+#   @fact tmpval.val => 0
+#   broadcastto(updatetmp, (UID(1),EDGX), 5)
+#   @fact tmpval.val => 5
+#   broadcastto(updatetmp, (UID(0),NOEXCHANGE), 10)
+#   @fact tmpval.val => 10
 
-end
+# end
+
+type Counter; n::Int; end
 
 facts("pubsub") do
   # TODO test: 
@@ -152,6 +154,35 @@ facts("pubsub") do
   #   ordering of connections
   #   function types, argument lists
   #   unregistering
+
+  # simple test function to add the sum of the args to the counter
+  handlemsg(c::Counter, args...) = (c.n += sum(args))
+  
+  reset_hub()
+  pub1 = Publisher(handlemsg, Filters([:key1, 5, 6], [:key2, "hi", "yo"]))
+
+  c1 = Counter(0)
+  sub1 = subscribe(handlemsg, c1)
+
+  # sub1 should add 1 to c1
+  publish(pub1, 1)
+  @fact c1.n => 1
+
+  # now both sub1 and sub2 should be subscribed to pub1, so this should add 9 (2+3+4) twice
+  sub2 = subscribe(handlemsg, c1, Filters([:key1, 6, 7, 8]))
+  publish(pub1, 2,3,4)
+  @fact c1.n => 19
+
+  # unregistering sub1, so the next pub should add 10 once
+  unregister(sub1)
+  publish(pub1, 5,5)
+  @fact c1.n => 29
+
+  # sub3 should not be subscribed to pub1
+  sub3 = subscribe(handlemsg, c1, Filters([:key2, "word"]))
+  publish(pub1, 10)
+  @fact c1.n => 39
+
 end
 
 

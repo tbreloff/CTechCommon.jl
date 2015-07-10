@@ -8,6 +8,7 @@ using Reexport
 import Base.Dates
 import Calendar
 import Formatting: format
+import FastAnonymous
 
 # ----------------------------------------------------------
 
@@ -178,6 +179,18 @@ export
   broadcastto
 
 include("broadcaster.jl")
+
+# ---------------------------------------
+
+export
+  reset_hub,
+  Filters,
+  Publisher,
+  publish,
+  subscribe,
+  unregister
+
+include("broadcaster2.jl")
 
 # ---------------------------------------
 

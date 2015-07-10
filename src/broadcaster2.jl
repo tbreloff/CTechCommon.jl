@@ -1,12 +1,4 @@
 
-import FastAnonymous
-
-export
-  Filters,
-  Publisher,
-  publish,
-  subscribe,
-  unregister
 
 """
 Implements a pub-sub model, where you can subscribe to a feed with an optional set of filters
@@ -38,12 +30,14 @@ unregister(pub)
 # -----------------------------------------------------------------------
 # -----------------------------------------------------------------------
 
+typealias FilterSet Set{Any}
+typealias FilterMap Dict{Symbol,FilterSet}
 
 immutable Filters
-  d::Dict{Symbol,Set}
+  d::FilterMap
 end
-Filters() = Filters(Dict{Symbol,Set}())
-Filters(filterlists::Vector...) = Filters(Dict{Symbol,Set}(map(x->(x[1],Set(x[2:end])), filterlists)...))
+Filters() = Filters(FilterMap())
+Filters(filterlists::Vector...) = Filters(Dict(map(x -> (Symbol(x[1]), FilterSet(x[2:end])), filterlists)))
 
 # -----------------------------------------------------------------------
 
@@ -70,7 +64,7 @@ immutable Subscriber
   f::Function
   listener
   anonfun::FastAnonymous.Fun  # this is the function that's actually called
-  filter::Filters
+  filters::Filters
 end
 
 # call this to start listening
@@ -92,6 +86,14 @@ immutable Hub
 end
 
 const HUB = Hub(Set{Subscriber}(), Set{Publisher}())
+
+function reset_hub()
+  for publisher in HUB.publishers
+    empty!(publisher.anonfuns)
+  end
+  empty!(HUB.publishers)
+  empty!(HUB.subscribers)
+end
 
 function register(subscriber::Subscriber)
   # add to subscribers list
@@ -120,8 +122,9 @@ function unregister(subscriber::Subscriber)
         break
       end
     end
-    deleteat!(publisher.anonfuns, delidx)
-
+    if delidx > 0
+      deleteat!(publisher.anonfuns, delidx)
+    end
   end
 end
 
@@ -159,7 +162,7 @@ function matches(publisher::Publisher, subscriber::Subscriber)
     if haskey(subscriber.filters.d, filterkey)
       # both sub and pub have this filter key... if the values don't overlap then there's no match
       subscriberset = subscriber.filters.d[filterkey]
-      isempty(intesect(pubset, subscriberset)) && return false
+      isempty(intersect(pubset, subscriberset)) && return false
     end
   end
 
