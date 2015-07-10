@@ -36,7 +36,7 @@ firstTimeInQueue(scheduler::Scheduler) = peek(scheduler.eventList).time
 # --------------------------------------------------------------
 
 type LiveScheduler
-	stopTime::TimeOfDay
+	timeOfLastEvent::TimeOfDay
 	eventList::SinglyLinkedList{ScheduledEvent}
 	LiveScheduler() = (s = new(); empty!(s); s)
 end
@@ -44,7 +44,7 @@ end
 NOW(scheduler::LiveScheduler) = currentTimeOfDay()
 
 function Base.empty!(scheduler::LiveScheduler)
-	scheduler.stopTime = typemax(TimeOfDay)
+	scheduler.timeOfLastEvent = 0
 	scheduler.eventList = SinglyLinkedList(ScheduledEvent)
 end
 
@@ -59,28 +59,26 @@ end
 # --------------------------------------------------------------
 
 type SimulationScheduler <: Scheduler
-	currentTime::TimeOfDay
-	stopEvent::TimeOfDay
+	timeOfLastEvent::TimeOfDay
 	eventList::SinglyLinkedList{ScheduledEvent}
 	SimulationScheduler() = (s = new(); empty!(s); s)
 end
 
-NOW(scheduler::SimulationScheduler) = scheduler.currentTime
+NOW(scheduler::SimulationScheduler) = scheduler.timeOfLastEvent
 
 function Base.empty!(scheduler::SimulationScheduler)
-	scheduler.currentTime = 0
-	scheduler.stopTime = typemax(TimeOfDay)
+	scheduler.timeOfLastEvent = 0
 	scheduler.eventList = SinglyLinkedList(ScheduledEvent)
 end
 
 function publish(scheduler::SimulationScheduler, event::ScheduledEvent)
-	scheduler.currentTime = event.time
+	scheduler.timeOfLastEvent = event.time
 	publish(event.pub, event.args...)
 	return
 end
 
 function publish(scheduler::SimulationScheduler, time::TimeOfDay, pub::Publisher, args...)
-	scheduler.currentTime = time
+	scheduler.timeOfLastEvent = time
 	publish(pub, args)
 	return
 end
@@ -93,29 +91,31 @@ const SCHEDULER = SimulationScheduler()  # TODO: allow choice between sim/live s
 
 NOW() = NOW(SCHEDULER)
 initScheduler() = empty!(SCHEDULER)
-stopScheduler(time::TimeOfDay) = (insertSorted!(SCHEDULER.eventList, StopEvent(time), compareEventTimes); return)
+stopScheduler(time::TimeOfDay = zero(TimeOfDay)) = (insertSorted!(SCHEDULER.eventList, StopEvent(time), compareEventTimes); return)
 
-# stop the loop by adding a "stop event" to the queue
-# const stopEvent = ScheduledEvent()
-# stopScheduler(time::TimeOfDay) = (stopEvent.time = time; schedule(stopEvent); nothing)
 
 # --------------------------------------------------------------
 
 # returns true when we should stop
 processEvent(event::NormalEvent) = (publish(SCHEDULER, event); false)
-processEvent(event::StopEvent) = true
+processEvent(event::StopEvent) = (SCHEDULER.timeOfLastEvent = event.time; true)
 
 
 # these functions should be called from non-main-loop areas... schedule the event, and don't worry about how it gets run
 function Base.schedule(time::TimeOfDay, pub::Publisher, args...)
-	event = ScheduledEvent(time, pub, args)
+	event = NormalEvent(time, pub, args)
 	insertSorted!(SCHEDULER.eventList, event, compareEventTimes)
 	event
 end
 
 
-# call this one from the "main loop"... it either runs the function immediately or schedules and clears the queue
-# note: returns true if we should stop the main loop
+# call this method from the "main loop"... it either:
+#		1) runs the function immediately, or
+#		2) schedules the event and clears the queue up to and including that event
+# note: returns true if we hit a StopEvent
+# note: this function is really intended for the situation that a stream of events is "driving time forward", 
+#				such as historical market data.  if there are no other events waiting, just keep processing the 
+#				main event stream as quickly as possible
 function schedule_do(time::TimeOfDay, pub::Publisher, args...)
 	if isQueueEmpty(SCHEDULER) || time < firstTimeInQueue(SCHEDULER)
 		
@@ -139,5 +139,14 @@ function schedule_do(time::TimeOfDay, pub::Publisher, args...)
 	return false
 end
 
+# process events in order until either the queue is empty (returns false) or
+# we hit a StopEvent (returns true)
+function processAllEvents()
+	while !isQueueEmpty(SCHEDULER)
+		nextevent = shift!(SCHEDULER.eventList)  # gets the first in the list
+		processEvent(nextevent) && return true # stopped... return true
+	end
+	return false
+end
 
 

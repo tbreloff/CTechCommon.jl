@@ -105,16 +105,6 @@ include("time.jl")
 # ---------------------------------------
 
 export
-  NOW,
-  schedule_do,
-  initScheduler,
-  stopScheduler
-
-include("scheduler.jl")
-
-# ---------------------------------------
-
-export
   FixedLengthSymbol,
   Symbol6,
   Symbol8
@@ -201,6 +191,17 @@ export
   unregister
 
 include("broadcaster2.jl")
+
+# ---------------------------------------
+
+export
+  NOW,
+  schedule_do,
+  initScheduler,
+  stopScheduler,
+  processAllEvents
+
+include("scheduler.jl")
 
 # ---------------------------------------
 

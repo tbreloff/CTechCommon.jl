@@ -79,7 +79,7 @@ facts("time") do
   #   return Dates.value(utc+adjustment)
   # end
 
-  
+
 end
 
 
@@ -153,7 +153,10 @@ updatetmp(tmpval::TmpVal, newval::Integer) = (tmpval.val = newval; nothing)
 
 # end
 
-type Counter; n::Int; end
+type Counter
+  n::Int
+  Counter() = new(0)
+end
 
 facts("pubsub") do
   # TODO test: 
@@ -168,7 +171,7 @@ facts("pubsub") do
   reset_hub()
   pub1 = Publisher(handlemsg, Filters([:key1, 5, 6], [:key2, "hi", "yo"]))
 
-  c1 = Counter(0)
+  c1 = Counter()
   sub1 = subscribe(handlemsg, c1)
 
   # sub1 should add 1 to c1
@@ -192,5 +195,41 @@ facts("pubsub") do
 
 end
 
+
+const tdiff = TimeOfDay("00:00:30")
+const tstart = TimeOfDay("9:35:30")
+const tstop = TimeOfDay("9:39:15")
+
+facts("scheduler") do
+
+  function periodiccallback(c, x...)
+    c.n += sum(x)
+    @LOG c x
+    if c.n == 11
+      stopScheduler(TimeOfDay("9:39:15"))
+      LOG("stopScheduler")
+    end
+    schedule(NOW() + tdiff, pub, 2)
+  end
+
+  # set up a simple pub/sub, where the listener object is a Counter.
+  # every time the event triggers, it reschedules tdiff (30 seconds) ahead.
+  # the first pub at tstart has 1 as the arg, the rest have 2.
+  # counter should reach 11 on the 6th pub at 9:38, at which time it schedules
+  # the stop for tstop.
+  # 2 more callbacks are scheduled and run before we hit the stop event at 9:39:15
+  reset_hub()
+  c = Counter()
+  pub = Publisher(periodiccallback)
+  sub = subscribe(periodiccallback, c)
+
+  initScheduler()               # resets the scheduler (unnecessary for first pass)
+  schedule(tstart, pub, 1)      # schedules first pub
+  stopped = processAllEvents()  # main loop
+
+  @fact stopped => true
+  @fact NOW() => tstop
+  @fact c.n => 15
+end
 
 FactCheck.exitstatus()
