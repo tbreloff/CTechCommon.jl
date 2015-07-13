@@ -173,12 +173,12 @@ include("markets.jl")
 
 # ---------------------------------------
 
-export
-  initBroadcaster,
-  listenfor,
-  broadcastto
+# export
+#   initBroadcaster,
+#   listenfor,
+#   broadcastto
 
-include("broadcaster.jl")
+# include("broadcaster.jl")
 
 # ---------------------------------------
 
@@ -190,7 +190,7 @@ export
   subscribe,
   unregister
 
-include("broadcaster2.jl")
+include("pubsub.jl")
 
 # ---------------------------------------
 
