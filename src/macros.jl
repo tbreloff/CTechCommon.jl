@@ -66,6 +66,8 @@ macro packedStruct(expr)
     $expr
     $structType() = $defaultConstructorBody
     $structType(io::IO) = $readIOConstructorBody
+    Base.zero(::Type{$structType}) = $structType()
+    Base.read(io::IO, ::Type{$structType}) = $structType(io)
     Base.reinterpret(::Type{$structType}, buf::ABytes, pos::Integer) = $reinterpretBody
     CTechCommon.getPackedStructSize(::Type{$structType}) = $(sum(fsizes))
   end)

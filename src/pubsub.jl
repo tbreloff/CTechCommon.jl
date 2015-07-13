@@ -49,6 +49,7 @@ type Publisher
 end
 Publisher(f::Function, filters::Filters = Filters()) = register(Publisher(f, Any[], filters))
 
+Base.isempty(publisher::Publisher) = isempty(publisher.anonfuns)
 
 # call this to actually trigger the callbacks
 function publish(publisher::Publisher, args...)

@@ -104,20 +104,20 @@ include("time.jl")
 
 # ---------------------------------------
 
+export 
+  BufferedIOStream,
+  getPackedStructSize
+
+include("bufio.jl")
+
+# ---------------------------------------
+
 export
   FixedLengthSymbol,
   Symbol6,
   Symbol8
 
 include("fixedsym.jl")
-
-# ---------------------------------------
-
-export 
-  BufferedIOStream,
-  getPackedStructSize
-
-include("bufio.jl")
 
 # ---------------------------------------
 

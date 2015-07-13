@@ -91,6 +91,12 @@ end
 
 # note: the macro version give "x: xval" for "@LOG x"
 
+
+# TODO: maybe change the macros a little:
+  # can we get/hardcode the file/linenumber within the macro body?
+  # can we wrap the call with an "if log_severity() >= DebugSeverity; DEBUG(...); end" for speed?
+
+
 # default to InfoSeverity
 macro LOG(symbols...)
   expr = :(LOG(InfoSeverity))
