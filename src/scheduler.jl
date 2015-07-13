@@ -79,7 +79,7 @@ end
 
 function publish(scheduler::SimulationScheduler, time::TimeOfDay, pub::Publisher, args...)
 	scheduler.timeOfLastEvent = time
-	publish(pub, args)
+	publish(pub, args...)
 	return
 end
 
@@ -117,27 +117,18 @@ end
 #				such as historical market data.  if there are no other events waiting, just keep processing the 
 #				main event stream as quickly as possible
 function schedule_do(time::TimeOfDay, pub::Publisher, args...)
-	if isQueueEmpty(SCHEDULER) || time < firstTimeInQueue(SCHEDULER)
-		
-		# do this immediately
-		publish(SCHEDULER, time, pub, args...)
-		return false
 
-	else
-		# add to the queue
-		event = schedule(time, pub, args...)
+	# clear out the queue until the current time
+	while !isQueueEmpty(SCHEDULER) && time >= firstTimeInQueue(SCHEDULER)
+		nextevent = shift!(SCHEDULER.eventList)  # gets the first in the list
+		processEvent(nextevent) && return true # stopped... return true
+	end
 
-		# clear out the queue until we get to the new event
-		while !isQueueEmpty(SCHEDULER)
-			nextevent = shift!(SCHEDULER.eventList)  # gets the first in the list
-			processEvent(nextevent) && return true # stopped... return true
-			nextevent === event && return false # processed this one... return false
-		end
-	end	
-
-	# shouldn't actually get here...
-	return false
+	# now publish it
+	publish(SCHEDULER, time, pub, args...)
+	false
 end
+
 
 # process events in order until either the queue is empty (returns false) or
 # we hit a StopEvent (returns true)

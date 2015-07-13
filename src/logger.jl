@@ -1,23 +1,35 @@
 
 backtrace_list() = [ccall(:jl_lookup_code_address, Any, (Ptr{Void}, Int32), b, 0) for b in backtrace()]
 
+const IGNORED_METHODS = Set{Symbol}([:LOG, :publish, :schedule_do])
+
 function backtracestring()
 
 	# get the backtrace and find the position of the "backtracestring()" call
 	btlist = backtrace_list()
 	btpos = find(x->x[1] == :backtracestring, btlist)[1]
+  # println(btlist)
 
 	# find the first non-LOG, non-julia method and return that string
 	for i in btpos+1:length(btlist)
 
 		# skip julia internals and LOG calls
+    methodsym = btlist[i][1]
+    if methodsym in IGNORED_METHODS
+      continue
+    end
+
 		methodname, pathname, filenum, tmp1, tmp2 = map(string, btlist[i])
-		if methodname == "LOG" || methodname[1:3] == "jl_"
+		if methodname[1:3] == "jl_"
 			continue
 		end
 
 		# get the filename from the full path, then return the string
 		filename = split(pathname, "/")[end]
+    if filename == "FastAnonymous.jl"
+      continue
+    end
+
 		return "[$filename:$filenum]"
 	end
 	"[]"
