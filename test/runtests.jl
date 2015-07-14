@@ -79,11 +79,58 @@ facts("time") do
   #   return Dates.value(utc+adjustment)
   # end
 
+  @fact TimeOfDay("10") => 10 * nanosInOneHour
+  @fact TimeOfDay("10:30") => 10 * nanosInOneHour + 30 * nanosInOneMinute
+  @fact TimeOfDay("10:30:05") => 10 * nanosInOneHour + 30 * nanosInOneMinute + 5 * nanosInOneSecond
+  @fact TimeOfDay("10:30:05.00001") => 10 * nanosInOneHour + 30 * nanosInOneMinute + 5 * nanosInOneSecond + 10 * nanosInOneMicro
+
+  t = TimeOfDay("10:30:05")
+  buf = IOBuffer()
+  print(buf, t)
+  @fact bytestring(buf) => "10:30:05.000000"
+
+  tdiff = TimeOfDay(nanosInOneMinute)
+  trange = t : tdiff : t + 5 * nanosInOneMinute
+  @fact length(trange) => 6
+  @fact trange[2] => TimeOfDay("10:31:05")
+
+  @fact iszero(TimeOfDay(0)) => true
+  @fact iszero(TimeOfDay(1)) => false
+  @fact_throws TimeOfDay(-1)
 
 end
 
 
 facts("fixedsym") do
+  str = "abc"
+
+  n = 6
+  buf = IOBuffer(n)
+  for c in str
+    write(buf, UInt8(c))
+  end
+  for i in buf.size+1:n
+    write(buf, UInt8(0))
+  end
+
+  buf.ptr = 1
+  sym = Symbol6(buf)
+  @fact sizeof(sym) => n
+  @fact string(sym) => str
+
+  n = 8
+  buf = IOBuffer(n)
+  for c in str
+    write(buf, UInt8(c))
+  end
+  for i in buf.size+1:n
+    write(buf, UInt8(0))
+  end
+
+  buf.ptr = 1
+  sym = Symbol8(buf)
+  @fact sizeof(sym) => n
+  @fact string(sym) => str
 end
 
 
