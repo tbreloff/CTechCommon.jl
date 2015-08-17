@@ -10,6 +10,8 @@ import Calendar
 import Formatting: format
 import FastAnonymous
 
+import Base: ==, >, <, >=, <=, +, -, *, /, .*, ./
+
 # ----------------------------------------------------------
 
 export

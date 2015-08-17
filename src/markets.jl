@@ -14,9 +14,9 @@ exchange(e::Exchange) = string(e)
 const EXCH_LATENCY_NANOS = [Int(x * 1e3) for x in (199, 200)]
 const EXCH_TAKE_FEES = [0.0035, 0.0]
 const EXCH_PROVIDE_FEES = [-0.0025, 0.0010]
-getLatency(exch::Exchange) = (exch.val > 0 ? EXCH_LATENCY_NANOS[exch.val] : 0) 
-getTakeFee(exch::Exchange) = (exch.val > 0 ? EXCH_TAKE_FEES[exch.val] : 0.)
-getProvideFee(exch::Exchange) = (exch.val > 0 ? EXCH_PROVIDE_FEES[exch.val] : 0.)
+getLatency(exch::Exchange) = (Int(exch) > 0 ? EXCH_LATENCY_NANOS[Int(exch)] : 0) 
+getTakeFee(exch::Exchange) = (Int(exch) > 0 ? EXCH_TAKE_FEES[Int(exch)] : 0.)
+getProvideFee(exch::Exchange) = (Int(exch) > 0 ? EXCH_PROVIDE_FEES[Int(exch)] : 0.)
 getFee(exch::Exchange, istake::Bool) = (istake ? getTakeFee : getProvideFee)(exch)
 getPriceAdjustmentFromFee(exch::Exchange, buy::Bool, istake::Bool) = (buy ? 1 : -1) * getFee(exch, istake)
 
