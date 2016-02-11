@@ -81,5 +81,5 @@ function splitMatrixRows(m::AMat, pct::Real)
   rows(m,rng1), rows(m,rng2)
 end
 
-stringfloat(v::FloatingPoint, prec::Integer = 3) = format(v, precision = prec)
+stringfloat(v::AbstractFloat, prec::Integer = 3) = format(v, precision = prec)
 stringfloats(v::AVecF, prec::Integer = 3) = string("[", join(map(x->stringfloat(x,prec), v), ", "), "]")

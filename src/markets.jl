@@ -8,7 +8,7 @@ const marketCloseUS = TimeOfDay("16")
 
 
 @enum Exchange NOEXCHANGE EDGX EDGA
-exchange(s::String) = eval(symbol(s))
+exchange(s::AbstractString) = eval(symbol(s))
 exchange(e::Exchange) = string(e)
 
 const EXCH_LATENCY_NANOS = [Int(x * 1e3) for x in (199, 200)]
@@ -64,10 +64,10 @@ end
 Base.string(ticker::Ticker) = ticker.symbol
 Base.hash(ticker::Ticker) = hash(ticker.symbol)
 @createIOMethods Ticker
-Base.convert(::Type{Ticker}, s::String) = Ticker(ascii(s))
+Base.convert(::Type{Ticker}, s::AbstractString) = Ticker(ascii(s))
 
 for op in (:<, :>, :(==), :<=, :>=, :(Base.isless))
   @eval $op(t1::Ticker, t2::Ticker) = $op(t1.symbol, t2.symbol)
-  @eval $op(t1::Ticker, t2::String) = $op(t1.symbol, t2)
-  @eval $op(t1::String, t2::Ticker) = $op(t1, t2.symbol)
+  @eval $op(t1::Ticker, t2::AbstractString) = $op(t1.symbol, t2)
+  @eval $op(t1::AbstractString, t2::Ticker) = $op(t1, t2.symbol)
 end

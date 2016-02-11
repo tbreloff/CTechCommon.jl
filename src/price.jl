@@ -28,7 +28,7 @@ iszero(price::Price) = price.priceLong == 0
 Base.string(price::Price) = format(price.priceLong / price.multiplier, precision = price.precision, commas = true)
 @createIOMethods Price
 Base.convert(::Type{Price}, n::Number) = Price(n)
-Base.convert{T<:FloatingPoint}(::Type{T}, p::Price) = p.priceLong / p.multiplier
+Base.convert{T<:AbstractFloat}(::Type{T}, p::Price) = p.priceLong / p.multiplier
 
 
 function getLong(p::Price, precision::Int)

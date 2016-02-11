@@ -1,15 +1,15 @@
 
-const millisInOneSecond = Int(1e3)
-const microsInOnSecond = Int(1e6)
-const nanosInOneSecond = Int(1e9)
-const nanosInOneMilli = Int(1e6)
-const nanosInOneMicro = Int(1e3)
-const secondsInOneMinute = Int(60)
-const secondsInOneHour = Int(3600)
-const secondsInOneDay = secondsInOneHour * Int(24)
-const nanosInOneMinute = nanosInOneSecond * secondsInOneMinute
-const nanosInOneHour = nanosInOneSecond * secondsInOneHour
-const nanosInOneDay = nanosInOneSecond * secondsInOneDay
+const millisInOneSecond   = Int(1e3)
+const microsInOnSecond    = Int(1e6)
+const nanosInOneSecond    = Int(1e9)
+const nanosInOneMilli     = Int(1e6)
+const nanosInOneMicro     = Int(1e3)
+const secondsInOneMinute  = Int(60)
+const secondsInOneHour    = Int(3600)
+const secondsInOneDay     = secondsInOneHour * Int(24)
+const nanosInOneMinute    = nanosInOneSecond * secondsInOneMinute
+const nanosInOneHour      = nanosInOneSecond * secondsInOneHour
+const nanosInOneDay       = nanosInOneSecond * secondsInOneDay
 
 
 
@@ -31,7 +31,7 @@ calcSecondsSinceMidnight(hour::Int, minute::Int) = hour * secondsInOneHour + sec
 function getHoursAdjustmentFromUTC(year::Integer, month::Integer, day::Integer)
   millisEST = Calendar.ymd(year, month, day, "EST5EDT").millis
   millisUTC = Calendar.ymd(year, month, day, "UTC").millis
-  UInt64(round((millisEST - millisUTC) / (secondsInOneHour * millisInOneSecond)))
+  round(Int, (millisEST - millisUTC) / (secondsInOneHour * millisInOneSecond))
 end
 
 
@@ -48,35 +48,15 @@ function calcSecondsEpochToMidnight(secondsSinceEpoch::Integer)
   d = Dates.day(dt)
   hourAdjustment = getHoursAdjustmentFromUTC(y, m, d)
 
-  millisMidnightUTC::UInt64 = DateTime(y, m, d).instant.periods.value
-  millisMidnightEST::UInt64 = millisMidnightUTC + hourAdjustment * secondsInOneHour * millisInOneSecond
+  millisMidnightUTC = UInt64(DateTime(y, m, d).instant.periods.value)
+  millisMidnightEST = UInt64(millisMidnightUTC + hourAdjustment * secondsInOneHour * millisInOneSecond)
 
-  return UInt64((millisMidnightEST - getEpochMillis()) / millisInOneSecond)
+  return round(UInt64, (millisMidnightEST - getEpochMillis()) / millisInOneSecond)
 end
 
 function convertSecondsSinceEpochToSecondsSinceMidnight(secondsSinceEpoch::Integer)
   secondsSinceEpoch - calcSecondsEpochToMidnight(secondsSinceEpoch)
 end
-
-
-# # assuming we are given # seconds since UTC epoch, convert that to # seconds since midnight for US/Eastern timezone
-# function convertSecondsSinceEpochToSecondsSinceMidnight(secondsSinceEpoch::Integer)
-
-#   dt = createUTCDateTimeFromSecondsSinceEpoch(secondsSinceEpoch)
-
-#   # get the hour adjustment using the Calendar module
-#   y = Dates.year(dt)
-#   m = Dates.month(dt)
-#   d = Dates.day(dt)
-#   hourAdjustment = getHoursAdjustmentFromUTC(y, m, d)
-
-#   # get a datetime for midnight
-#   dtMidnightMillis::UInt64 = DateTime(y, m, d).instant.periods.value
-
-#   # now subtract the diff in UTC at midnight vs UTC now, then subtract the timezone adjustment
-#   secondsSinceMidnight = (dt.instant.periods.value - dtMidnightMillis) / millisInOneSecond - hourAdjustment * secondsInOneHour
-#   return UInt64(secondsSinceMidnight)
-# end
 
 
 #############################################
@@ -99,7 +79,7 @@ immutable TimeOfDay <: Number
   end
 end
 
-function TimeOfDay(str::String)
+function TimeOfDay(str::AbstractString)
   tmp = split(str,":")
   minutes = 0
   seconds = 0
@@ -121,7 +101,7 @@ function TimeOfDay(str::String)
   TimeOfDay(hours * nanosInOneHour + minutes * nanosInOneMinute + seconds * nanosInOneSecond + nanos)
 end
 
-Base.convert(::Type{TimeOfDay}, str::String) = TimeOfDay(str)
+Base.convert(::Type{TimeOfDay}, str::AbstractString) = TimeOfDay(str)
 
 
 
@@ -136,9 +116,9 @@ end
 
 # define how numbers get promoted to TimeOfDay
 Base.promote_rule{T<:Integer}(::Type{TimeOfDay}, ::Type{T}) = TimeOfDay
-Base.promote_rule{T<:FloatingPoint}(::Type{TimeOfDay}, ::Type{T}) = TimeOfDay
+Base.promote_rule{T<:AbstractFloat}(::Type{TimeOfDay}, ::Type{T}) = TimeOfDay
 Base.convert{T<:Integer}(::Type{TimeOfDay}, x::T) = TimeOfDay(x)
-Base.convert{T<:FloatingPoint}(::Type{TimeOfDay}, x::T) = TimeOfDay(x)
+Base.convert{T<:AbstractFloat}(::Type{TimeOfDay}, x::T) = TimeOfDay(x)
 Base.convert{T<:Number}(::Type{T}, x::TimeOfDay) = T(x.nanosSinceMidnight)
 
 # now for each op, we define the op between TimeOfDay's, then the generic "promote" version of the op will handle conversion

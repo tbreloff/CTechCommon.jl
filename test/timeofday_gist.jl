@@ -48,7 +48,7 @@ immutable TimeOfDay <: Number
   end
 end
 
-function TimeOfDay(str::String)
+function TimeOfDay(str::AbstractString)
   tmp = split(str,":")
   minutes = 0
   seconds = 0
@@ -86,7 +86,7 @@ Base.show(io::IO, time::TimeOfDay) = print(io, string(time))
 
 # define how numbers get promoted to TimeOfDay
 Base.promote_rule{T<:Real}(::Type{TimeOfDay}, ::Type{T}) = TimeOfDay
-Base.convert(::Type{TimeOfDay}, str::String) = TimeOfDay(str)
+Base.convert(::Type{TimeOfDay}, str::AbstractString) = TimeOfDay(str)
 Base.convert(::Type{TimeOfDay}, x::Real) = TimeOfDay(x)
 Base.convert{T<:Number}(::Type{T}, x::TimeOfDay) = T(x.nanosSinceMidnight)
 

@@ -78,6 +78,9 @@ facts("time") do
   #   return Dates.value(utc+adjustment)
   # end
 
+  year, month, day = 2013,1,1
+  @fact CTechCommon.getHoursAdjustmentFromUTC(year,month,day) --> 5
+
   @fact TimeOfDay("10") --> 10 * nanosInOneHour
   @fact TimeOfDay("10:30") --> 10 * nanosInOneHour + 30 * nanosInOneMinute
   @fact TimeOfDay("10:30:05") --> 10 * nanosInOneHour + 30 * nanosInOneMinute + 5 * nanosInOneSecond
@@ -143,7 +146,10 @@ end
 
 facts("Logger") do
   @fact log_severity() --> InfoSeverity
-  @fact log_io() --> STDOUT
+  f = open(tempname(),"w")
+  @fact log_io!(f) --> nothing
+  @fact log_io() --> f
+  close(f)
   log_severity!(DebugSeverity)
   @fact log_severity() --> DebugSeverity
   log_severity!(ErrorSeverity)
