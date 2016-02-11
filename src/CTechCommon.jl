@@ -2,10 +2,8 @@ __precompile__()
 
 module CTechCommon
 
-
-using Reexport
-@reexport using QuickStructs
-@reexport using ArrayViews
+using QuickStructs
+using ArrayViews
 
 import Base.Dates
 using TimeZones
