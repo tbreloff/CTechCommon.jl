@@ -84,7 +84,7 @@ function LOG(sev::LogSeverity, args...)
     for arg in args
       print(io, arg, " ")
     end
-    # println(io, backtracestring())
+    println(io, backtracestring())
 	end
 end
 
