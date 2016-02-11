@@ -207,4 +207,8 @@ include("scheduler.jl")
 
 # ---------------------------------------
 
+function __init__()
+  global const LOG_SEVERITY = SevObj(InfoSeverity, STDOUT)
+end
+
 end # module

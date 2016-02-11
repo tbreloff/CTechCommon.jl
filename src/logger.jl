@@ -62,7 +62,7 @@ type SevObj
   io::IO
 end
 
-const LOG_SEVERITY = SevObj(InfoSeverity, STDOUT)
+# const LOG_SEVERITY = SevObj(InfoSeverity, STDOUT)
 
 log_severity() = LOG_SEVERITY.sev
 log_severity!(sev::LogSeverity) = (LOG_SEVERITY.sev = sev; nothing)
@@ -84,8 +84,7 @@ function LOG(sev::LogSeverity, args...)
     for arg in args
       print(io, arg, " ")
     end
-    println(io, backtracestring())
-      # join(vcat(map(string,args)..., backtracestring()), " "))
+    # println(io, backtracestring())
 	end
 end
 
