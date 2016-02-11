@@ -55,7 +55,7 @@ macro packedStruct(expr)
   readIOConstructorBody = makebody(structType, [:(read(io, $ft)) for ft in fieldTypes])
 
   # create the reinterpret function to construct from a position in a byte array
-  fsizes = [@eval sizeof($ft) for ft in fieldTypes]
+  fsizes = [eval(current_module(), :(sizeof($ft))) for ft in fieldTypes]
   spos = vcat(1, cumsum(fsizes)[1:end-1] + 1)
   reinterpretBody = makebody(structType, [loadFunction(ft,spos[i]) for (i,ft) in enumerate(fieldTypes)])
 
