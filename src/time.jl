@@ -11,6 +11,8 @@ const nanosInOneMinute    = nanosInOneSecond * secondsInOneMinute
 const nanosInOneHour      = nanosInOneSecond * secondsInOneHour
 const nanosInOneDay       = nanosInOneSecond * secondsInOneDay
 
+const _epoch_millis = UInt64(DateTime(1970,1,1).instant.periods.value)
+const _est5edt = TimeZone("EST5EDT")
 
 
 function currentTimeOfDay()
@@ -26,23 +28,23 @@ calcSecondsSinceMidnight(hour::Int, minute::Int) = hour * secondsInOneHour + sec
 
 
 # NOTE: DateTime module does NOT have timezone info, so all those calls are UTC
-# NOTE: Calendar module does timezone calc... parse_date is WRONG, which is why i'm using ymd
 
-function getHoursAdjustmentFromUTC(year::Integer, month::Integer, day::Integer)
-  millisEST = Calendar.ymd(year, month, day, "EST5EDT").millis
-  millisUTC = Calendar.ymd(year, month, day, "UTC").millis
-  round(Int, (millisEST - millisUTC) / (secondsInOneHour * millisInOneSecond))
+function getHoursAdjustmentFromUTC(year::Integer, month::Integer, day::Integer; timezone = _est5edt)
+  # create a historically-aware timezone-aware datetime
+  dt = ZonedDateTime(DateTime(year,month,day), timezone)
+
+  # extract the hours offset from UTC
+  round(Int, -dt.zone.offset.utc.value / 3600)
 end
 
 
-getEpochMillis() = UInt64(DateTime(1970,1,1).instant.periods.value)
-createUTCDateTimeFromSecondsSinceEpoch(secondsSinceEpoch::Integer) = DateTime(Dates.UTM(secondsSinceEpoch * millisInOneSecond + getEpochMillis()))
+createUTCDateTimeFromSecondsSinceEpoch(secondsSinceEpoch::Integer) = DateTime(Dates.UTM(secondsSinceEpoch * millisInOneSecond + _epoch_millis))
 
 function calcSecondsEpochToMidnight(secondsSinceEpoch::Integer)
 
   dt = createUTCDateTimeFromSecondsSinceEpoch(secondsSinceEpoch)
 
-  # get the hour adjustment using the Calendar module
+  # get the hour adjustment
   y = Dates.year(dt)
   m = Dates.month(dt)
   d = Dates.day(dt)
@@ -51,7 +53,7 @@ function calcSecondsEpochToMidnight(secondsSinceEpoch::Integer)
   millisMidnightUTC = UInt64(DateTime(y, m, d).instant.periods.value)
   millisMidnightEST = UInt64(millisMidnightUTC + hourAdjustment * secondsInOneHour * millisInOneSecond)
 
-  return round(UInt64, (millisMidnightEST - getEpochMillis()) / millisInOneSecond)
+  return round(UInt64, (millisMidnightEST - _epoch_millis) / millisInOneSecond)
 end
 
 function convertSecondsSinceEpochToSecondsSinceMidnight(secondsSinceEpoch::Integer)

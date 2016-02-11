@@ -8,7 +8,7 @@ using Reexport
 @reexport using ArrayViews
 
 import Base.Dates
-import Calendar
+using TimeZones
 import Formatting: format
 import FastAnonymous
 
