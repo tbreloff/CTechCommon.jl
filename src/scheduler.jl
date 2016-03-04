@@ -108,7 +108,6 @@ function Base.schedule(time::TimeOfDay, pub::Publisher, args...)
 	event
 end
 
-
 # call this method from the "main loop"... it either:
 #		1) runs the function immediately, or
 #		2) schedules the event and clears the queue up to and including that event
@@ -129,6 +128,24 @@ function schedule_do(time::TimeOfDay, pub::Publisher, args...)
 	false
 end
 
+
+# --------------------------------------------------------------
+
+# handle scheduling the same thing multiple times
+
+function Base.schedule(times::AbstractVector{TimeOfDay}, args...)
+	for t in times
+		schedule(t, args...)
+	end
+end
+
+function schedule_do(times::AbstractVector{TimeOfDay}, args...)
+	for t in times
+		schedule_do(t, args...)
+	end
+end
+
+# --------------------------------------------------------------
 
 # process events in order until either the queue is empty (returns false) or
 # we hit a StopEvent (returns true)

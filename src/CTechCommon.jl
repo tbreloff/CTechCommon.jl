@@ -9,6 +9,7 @@ import Base.Dates
 using TimeZones
 import Formatting: format
 import FastAnonymous
+using Plots
 
 import Base: ==, >, <, >=, <=, +, -, *, /, .*, ./
 
@@ -175,15 +176,6 @@ include("markets.jl")
 
 # ---------------------------------------
 
-# export
-#   initBroadcaster,
-#   listenfor,
-#   broadcastto
-
-# include("broadcaster.jl")
-
-# ---------------------------------------
-
 export
   reset_hub,
   Filters,
@@ -204,6 +196,10 @@ export
   processAllEvents
 
 include("scheduler.jl")
+
+# ---------------------------------------
+
+include("plots.jl")
 
 # ---------------------------------------
 
