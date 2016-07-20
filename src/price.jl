@@ -26,6 +26,7 @@ Base.zero(::Type{Price}) = Price(0)
 iszero(price::Price) = price.priceLong == 0
 
 Base.String(price::Price) = format(price.priceLong / price.multiplier, precision = price.precision, commas = true)
+Base.show(io::IO, price::Price) = print(io, String(price))
 # @createIOMethods Price
 Base.convert(::Type{Price}, n::Number) = Price(n)
 Base.convert{T<:AbstractFloat}(::Type{T}, p::Price) = p.priceLong / p.multiplier

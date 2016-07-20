@@ -144,7 +144,7 @@ function register(publisher::Publisher)
   # match publisher's filters to subscriber's filters... add matching subscribers' anonfuns to publisher.
   for subscriber in HUB.subscribers
     if matches(publisher, subscriber)
-      push!(publisher.anonfuns, subscriber.anonfun)
+      push!(publisher.listeners, subscriber.listener)
     end
   end
 

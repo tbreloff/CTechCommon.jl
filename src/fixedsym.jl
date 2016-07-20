@@ -1,4 +1,6 @@
 
+# TODO: replace this with a bitstype that uses reinterpret to copy data in and out, and generated functions to convert
+
 # FixedLengthSymbol types... Symbol6 and Symbol8 are fixed width types used for reading in symbols from a binary feed handler
 
 abstract FixedLengthSymbol
