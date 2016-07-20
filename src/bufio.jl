@@ -12,7 +12,7 @@ type BufferedIOStream
 	ioPos::Int64
 	# cfile::CFILE
 	cfile::Libc.FILE
-	buf::Bytes   
+	buf::Vector{UInt8}
 	pos::Int64   # current position in the array
 	filled::Int64  # the number of bytes filled currently
 	bufSz::Int64  # size of buf

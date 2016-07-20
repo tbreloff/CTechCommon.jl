@@ -37,46 +37,51 @@ immutable Filters
   d::FilterMap
 end
 Filters() = Filters(FilterMap())
-Filters(filterlists::Vector...) = Filters(Dict(map(x -> (Symbol(x[1]), FilterSet(x[2:end])), filterlists)))
+Filters(filterlists::Vector...) = Filters(FilterMap(map(x -> (Symbol(x[1]), FilterSet(x[2:end])), filterlists)))
 
 # -----------------------------------------------------------------------
 
 # a Publisher is set up from the broadcast side
-type Publisher
-  f::Function
-  anonfuns::Vector{FastAnonymous.Fun}
+type Publisher{F<:Function}
+  f::F
+  # anonfuns::Vector{FastAnonymous.Fun}
+  listeners::Vector{Any}
   filters::Filters
 end
 Publisher(f::Function, filters::Filters = Filters()) = register(Publisher(f, Any[], filters))
 
-Base.isempty(publisher::Publisher) = isempty(publisher.anonfuns)
+# Base.isempty(publisher::Publisher) = isempty(publisher.anonfuns)
+Base.isempty(publisher::Publisher) = isempty(publisher.listeners)
 
 # call this to actually trigger the callbacks
 function publish(publisher::Publisher, args...)
-  for anonfun in publisher.anonfuns
-    anonfun(args)
-  end
+    for listener in publisher.listeners
+        publisher.f(listener, args...)
+    end
+  # for anonfun in publisher.anonfuns
+  #   anonfun(args)
+  # end
 end
 
 # -----------------------------------------------------------------------
 
 
-immutable Subscriber
-  f::Function
-  listener
-  anonfun::FastAnonymous.Fun  # this is the function that's actually called
+immutable Subscriber{F<:Function,L}
+  f::F
+  listener::L
+  # anonfun::FastAnonymous.Fun  # this is the function that's actually called
   filters::Filters
 end
 
 # call this to start listening
 function subscribe(f::Function, listener, filters::Filters = Filters())
-  # create a placeholder anonymous function, then swap out the 
-  # function and listener before it gets compiled
-  anonfun = FastAnonymous.@anon args -> tmpf(0, args...)
-  anonfun.ast.args[2].args[1] = f
-  anonfun.ast.args[2].args[2] = listener
+  # # create a placeholder anonymous function, then swap out the 
+  # # function and listener before it gets compiled
+  # anonfun = FastAnonymous.@anon args -> tmpf(0, args...)
+  # anonfun.ast.args[2].args[1] = f
+  # anonfun.ast.args[2].args[2] = listener
 
-  register(Subscriber(f, listener, anonfun, filters))
+  register(Subscriber(f, listener, filters))
 end
 
 # -----------------------------------------------------------------------
@@ -90,7 +95,7 @@ const HUB = Hub(Set{Subscriber}(), Set{Publisher}())
 
 function reset_hub()
   for publisher in HUB.publishers
-    empty!(publisher.anonfuns)
+    empty!(publisher.listeners)
   end
   empty!(HUB.publishers)
   empty!(HUB.subscribers)
@@ -100,10 +105,11 @@ function register(subscriber::Subscriber)
   # add to subscribers list
   push!(HUB.subscribers, subscriber)
 
-  # match subscriber filters to publisher's filters... add this subscriber's anonfun to matching publishers
+  # match subscriber filters to publisher's filters... add this subscriber's listener to matching publishers
   for publisher in HUB.publishers
     if matches(publisher, subscriber)
-      push!(publisher.anonfuns, subscriber.anonfun)
+      # push!(publisher.anonfuns, subscriber.anonfun)
+      push!(publisher.listeners, subscriber.listener)
     end
   end
 
@@ -117,14 +123,14 @@ function unregister(subscriber::Subscriber)
 
     # TODO: this should be a simple "delete!" call, but doesn't work for vectors
     delidx = 0
-    for (i,anonfun) in enumerate(publisher.anonfuns)
-      if anonfun === subscriber.anonfun
+    for (i,listener) in enumerate(publisher.listeners)
+      if listener === subscriber.listener
         delidx = i
         break
       end
     end
     if delidx > 0
-      deleteat!(publisher.anonfuns, delidx)
+      deleteat!(publisher.listeners, delidx)
     end
   end
 end

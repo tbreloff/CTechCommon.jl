@@ -68,7 +68,7 @@ macro packedStruct(expr)
     $structType(io::IO) = $readIOConstructorBody
     Base.zero(::Type{$structType}) = $structType()
     Base.read(io::IO, ::Type{$structType}) = $structType(io)
-    Base.reinterpret(::Type{$structType}, buf::ABytes, pos::Integer) = $reinterpretBody
+    Base.reinterpret(::Type{$structType}, buf::AbstractVector{UInt8}, pos::Integer) = $reinterpretBody
     CTechCommon.getPackedStructSize(::Type{$structType}) = $(sum(fsizes))
   end)
 end
@@ -76,36 +76,36 @@ end
 
 # ------------------------------------------------------------------
 
-# create print/show methods, assuming string(typ) is defined
-macro createIOMethods(typ::Symbol)
-  esc(quote
-    Base.print(io::IO, o::$typ) = print(io, string(o))
-    Base.show(io::IO, o::$typ) = print(io, string(o))
-  end)
-end
+# # create print/show methods, assuming string(typ) is defined
+# macro createIOMethods(typ::Symbol)
+#   esc(quote
+#     Base.print(io::IO, o::$typ) = print(io, string(o))
+#     Base.show(io::IO, o::$typ) = print(io, string(o))
+#   end)
+# end
 
-# ------------------------------------------------------------------
+# # ------------------------------------------------------------------
 
-macro pretty(expr::Expr)
+# macro pretty(expr::Expr)
 
-  structType, fields = getStructTypeAndFields(expr)
+#   structType, fields = getStructTypeAndFields(expr)
 
-  # create a string() expression and add "$sep$fieldname: $fieldexpr" for each field
-  strExpr = :(string())
-  for (i,f) in enumerate(fields)
-    fn = f[1]
-    sep = i>1 ? ", " : ""
-    ss = "$sep$fn="
-    push!(strExpr.args, :($ss))
-    push!(strExpr.args, :(xxx.$fn))
-  end
+#   # create a string() expression and add "$sep$fieldname: $fieldexpr" for each field
+#   strExpr = :(string())
+#   for (i,f) in enumerate(fields)
+#     fn = f[1]
+#     sep = i>1 ? ", " : ""
+#     ss = "$sep$fn="
+#     push!(strExpr.args, :($ss))
+#     push!(strExpr.args, :(xxx.$fn))
+#   end
 
-  # return the original type expression, along with the new methods to be added
-  quote
-    $(esc(expr))
-    Base.string(xxx::$(esc(structType))) = string($(string(structType)), "{", $strExpr, "}")
-    Base.print(io::IO, xxx::$(esc(structType))) = print(io, string(xxx))
-    Base.show(io::IO, xxx::$(esc(structType))) = print(io, string(xxx))
-  end
-end
+#   # return the original type expression, along with the new methods to be added
+#   quote
+#     $(esc(expr))
+#     Base.string(xxx::$(esc(structType))) = string($(string(structType)), "{", $strExpr, "}")
+#     Base.print(io::IO, xxx::$(esc(structType))) = print(io, string(xxx))
+#     Base.show(io::IO, xxx::$(esc(structType))) = print(io, string(xxx))
+#   end
+# end
 

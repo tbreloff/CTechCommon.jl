@@ -34,7 +34,7 @@ function getHoursAdjustmentFromUTC(year::Integer, month::Integer, day::Integer; 
   dt = ZonedDateTime(DateTime(year,month,day), timezone)
 
   # extract the hours offset from UTC
-  round(Int, -dt.zone.offset.utc.value / 3600)
+  round(Int, -dt.zone.offset.std.value / 3600)
 end
 
 
@@ -107,14 +107,14 @@ Base.convert(::Type{TimeOfDay}, str::AbstractString) = TimeOfDay(str)
 
 
 
-function Base.string(timeOfDay::TimeOfDay)
+function Base.show(io::IO, timeOfDay::TimeOfDay)
   secsSinceMidnight, nanos = divrem(timeOfDay.nanosSinceMidnight, nanosInOneSecond)
   hours, hourrem = divrem(secsSinceMidnight, secondsInOneHour)
   minutes, seconds = divrem(hourrem, secondsInOneMinute)
   microseconds = div(nanos, millisInOneSecond)
-  string(lpad(hours,2,"0"), ":", lpad(minutes,2,"0"), ":", lpad(seconds,2,"0"), ".", lpad(microseconds,6,"0"))
+  print(io, lpad(hours,2,"0"), ":", lpad(minutes,2,"0"), ":", lpad(seconds,2,"0"), ".", lpad(microseconds,6,"0"))
 end
-@createIOMethods TimeOfDay
+# @createIOMethods TimeOfDay
 
 # define how numbers get promoted to TimeOfDay
 Base.promote_rule{T<:Integer}(::Type{TimeOfDay}, ::Type{T}) = TimeOfDay

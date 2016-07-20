@@ -1,15 +1,15 @@
 
 abstract ScheduledEvent
 
-@pretty immutable StopEvent <: ScheduledEvent
+immutable StopEvent <: ScheduledEvent
 	time::TimeOfDay
 end
 
 # this encompasses everything we need to know about when/how to do the scheduled event
-@pretty immutable NormalEvent <: ScheduledEvent
+immutable NormalEvent{T} <: ScheduledEvent
 	time::TimeOfDay   				# when this should run
 	pub::Publisher            # the publisher to be scheduled (which contains both the function call and receivers/listeners)
-	args 											# the arguments to the function
+	args::T 											# the arguments to the function
 end
 
 # Base.string(event::ScheduledEvent) = (isdefined(event,:pub) ? "Event{time=$(event.time), $(event.pub), $(event.args)}" : "Event{time=$(event.time)}")

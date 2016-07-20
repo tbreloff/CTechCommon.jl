@@ -20,8 +20,8 @@ getProvideFee(exch::Exchange) = (Int(exch) > 0 ? EXCH_PROVIDE_FEES[Int(exch)] : 
 getFee(exch::Exchange, istake::Bool) = (istake ? getTakeFee : getProvideFee)(exch)
 getPriceAdjustmentFromFee(exch::Exchange, buy::Bool, istake::Bool) = (buy ? 1 : -1) * getFee(exch, istake)
 
-Base.isless(e1::Exchange, e2::Exchange) = getTakeFee(e1) < getTakeFee(e2)
-const EXCH_SORTED_BY_TAKE_FEE = sort([EDGX,EDGA])
+# Base.isless(e1::Exchange, e2::Exchange) = getTakeFee(e1) < getTakeFee(e2)
+const EXCH_SORTED_BY_TAKE_FEE = sort([EDGX,EDGA], by=getTakeFee)
 
 ####################################################
 # IDs
@@ -34,8 +34,8 @@ typealias UID UInt64
 
 # OID() = OID(0)
 # UID() = UID(0)
-iszero(oid::OID) = oid == 0
-iszero(uid::UID) = uid == 0
+# iszero(oid::OID) = oid == 0
+# iszero(uid::UID) = uid == 0
 
 type OID_Generator
   lastoid::OID
@@ -54,17 +54,18 @@ end
 #############################################
 
 immutable Ticker
-  symbol::ASCIIString
+  symbol::String
 
-  Ticker(symbol::ASCIIString) = new(strip(symbol))
-  Ticker(byteArray::Bytes) = Ticker(ascii(byteArray))
+  Ticker(symbol::String) = new(strip(symbol))
+  Ticker(byteArray::AbstractVector{UInt8}) = Ticker(String(byteArray))
   Ticker{T<:FixedLengthSymbol}(sym::T) = Ticker(sym.data)
 end
 
-Base.string(ticker::Ticker) = ticker.symbol
+Base.String(ticker::Ticker) = ticker.symbol
 Base.hash(ticker::Ticker) = hash(ticker.symbol)
-@createIOMethods Ticker
-Base.convert(::Type{Ticker}, s::AbstractString) = Ticker(ascii(s))
+# @createIOMethods Ticker
+Base.convert(::Type{Ticker}, s::String) = Ticker(s)
+Base.show(io::IO, ticker::Ticker) = show(io, ticker.symbol)
 
 for op in (:<, :>, :(==), :<=, :>=, :(Base.isless))
   @eval $op(t1::Ticker, t2::Ticker) = $op(t1.symbol, t2.symbol)

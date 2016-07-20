@@ -1,77 +1,79 @@
 using CTechCommon
-using FactCheck
+# using FactCheck
+using Base.Test
+
+# @testset "all" begin
+
+# @testset "arrays" begin
+#   r = 1:10
+#   x = collect(r)
+#   @test get(getith(r,3)) == 3
+#   @test get(getith(x,3)) == 3
+#   @test isnull(getith(x,11)) == true
+
+#   z = ([1,"one"], [2,"two"])
+#   z1, z2 = unzip(z)
+#   @test z1 == [1,2]
+#   @test z2 == ["one","two"]
+#   @test sizes(z) == ((2,),(2,))
+#   @test mapf((sin,cos), 1) == [sin(1), cos(1)]
+
+#   m = rand(3,3)
+#   v = rand(3)
+#   @test row(m, 1)[2] == m[1,2]
+#   @test col(m, 1)[2] == m[2,1]
+#   vw = rows(m, 1:2)
+#   vw[1,1] = 0
+#   @test m[1,1] == 0
+#   @test nrows(m) == 3
+#   @test ncols(m) == 3
+#   @test nrows(v) == 3
+#   @test ncols(v) == 1
+
+#   m = reshape(collect(1:4),2,2)
+#   @test addOnes(collect(1:3)) == Int[1,2,3,1]
+#   @test addOnes(collect(1:3.)) == Float64[1,2,3,1]
+#   @test addOnes(m) == Int[1 3 1; 2 4 1]
+
+#   @test getPctOfInt(0.5, 10) == 5
+#   @test getPctOfInt(1.5, 10) == 10
+#   @test splitRange(10, 0.5) == (1:5, 6:10)
+#   @test splitMatrixRows(m, 0.5)[1] == rows(m, 1:1)
+
+#   @test stringfloat(0.1111) == "0.111"
+#   @test stringfloat(0.1111, 1) == "0.1"
+#   @test stringfloats([0.1111, 0.9999], 2) == "[0.11, 1.00]"
+# end
 
 
-facts("arrays") do
-  r = 1:10
-  x = collect(r)
-  @fact get(getith(r,3)) --> 3
-  @fact get(getith(x,3)) --> 3
-  @fact isnull(getith(x,11)) --> true
-
-  z = ([1,"one"], [2,"two"])
-  z1, z2 = unzip(z)
-  @fact z1 --> [1,2]
-  @fact z2 --> ["one","two"]
-  @fact sizes(z) --> ((2,),(2,))
-  @fact mapf((sin,cos), 1) --> [sin(1), cos(1)]
-
-  m = rand(3,3)
-  v = rand(3)
-  @fact row(m, 1)[2] --> m[1,2]
-  @fact col(m, 1)[2] --> m[2,1]
-  vw = rows(m, 1:2)
-  vw[1,1] = 0
-  @fact m[1,1] --> 0
-  @fact nrows(m) --> 3
-  @fact ncols(m) --> 3
-  @fact nrows(v) --> 3
-  @fact ncols(v) --> 1
-
-  m = reshape(collect(1:4),2,2)
-  @fact addOnes(collect(1:3)) --> Int[1,2,3,1]
-  @fact addOnes(collect(1:3.)) --> Float64[1,2,3,1]
-  @fact addOnes(m) --> Int[1 3 1; 2 4 1]
-
-  @fact getPctOfInt(0.5, 10) --> 5
-  @fact getPctOfInt(1.5, 10) --> 10
-  @fact splitRange(10, 0.5) --> (1:5, 6:10)
-  @fact splitMatrixRows(m, 0.5)[1] --> rows(m, 1:1)
-
-  @fact stringfloat(0.1111) --> "0.111"
-  @fact stringfloat(0.1111, 1) --> "0.1"
-  @fact stringfloats([0.1111, 0.9999], 2) --> "[0.11, 1.00]"
-end
+# facts("misc") do
+#   @test donothing(5,5) == nothing
+#   @test nop(5) == 5
+#   @test returntrue(5) == true
+# end
 
 
-facts("misc") do
-  @fact donothing(5,5) --> nothing
-  @fact nop(5) --> 5
-  @fact returntrue(5) --> true
-end
-
-
-facts("price") do
-  @fact Price(50.55) --> CTechCommon.makePrice(5055, 2)
-  @fact Price(50.55, 4) --> Price(50.55, 2)
+@testset "price" begin
+  @test Price(50.55) == CTechCommon.makePrice(5055, 2)
+  @test Price(50.55, 4) == Price(50.55, 2)
 
   fp = 55.55555
   p = Price(fp)
-  @fact p.priceLong --> 555556
-  @fact p.precision --> 4
-  @fact p.multiplier --> 10_000
-  @fact CTechCommon.getLong(p, 2) --> 5556
-  @fact float(p + Price(1.01,2)) --> roughly(56.5656)
+  @test p.priceLong == 555556
+  @test p.precision == 4
+  @test p.multiplier == 10_000
+  @test CTechCommon.getLong(p, 2) == 5556
+  @test float(p + Price(1.01,2)) ≈ 56.5656
 
   p = Price(fp, 2)
   rounded = round(fp, 2)
-  @fact p + 0.001 --> p
-  @fact float(p + 0.005) --> roughly(rounded + 0.01)
-  @fact float(p * 2) --> roughly(rounded * 2)
+  @test p + 0.001 == p
+  @test float(p + 0.005) ≈ rounded + 0.01
+  @test float(p * 2) ≈ rounded * 2
 end
 
 
-facts("time") do
+@testset "time" begin
   # function jacob_calcSecondsEpochToMidnight(secondsSinceEpoch::Integer)
   #   utc = DateTime(Date(Dates.unix2datetime(secondsSinceEpoch)))
   #   adjustment = Dates.Second(div(Dates.value(now() - now(Dates.UTC)),1000))
@@ -79,31 +81,31 @@ facts("time") do
   # end
 
   year, month, day = 2013,1,1
-  @fact CTechCommon.getHoursAdjustmentFromUTC(year,month,day) --> 5
+  @test CTechCommon.getHoursAdjustmentFromUTC(year,month,day) == 5
 
-  @fact TimeOfDay("10") --> 10 * nanosInOneHour
-  @fact TimeOfDay("10:30") --> 10 * nanosInOneHour + 30 * nanosInOneMinute
-  @fact TimeOfDay("10:30:05") --> 10 * nanosInOneHour + 30 * nanosInOneMinute + 5 * nanosInOneSecond
-  @fact TimeOfDay("10:30:05.00001") --> 10 * nanosInOneHour + 30 * nanosInOneMinute + 5 * nanosInOneSecond + 10 * nanosInOneMicro
+  @test TimeOfDay("10") == 10 * nanosInOneHour
+  @test TimeOfDay("10:30") == 10 * nanosInOneHour + 30 * nanosInOneMinute
+  @test TimeOfDay("10:30:05") == 10 * nanosInOneHour + 30 * nanosInOneMinute + 5 * nanosInOneSecond
+  @test TimeOfDay("10:30:05.00001") == 10 * nanosInOneHour + 30 * nanosInOneMinute + 5 * nanosInOneSecond + 10 * nanosInOneMicro
 
   t = TimeOfDay("10:30:05")
   buf = IOBuffer()
   print(buf, t)
-  @fact bytestring(buf) --> "10:30:05.000000"
+  @test String(buf) == "10:30:05.000000"
 
   tdiff = TimeOfDay(nanosInOneMinute)
   trange = t : tdiff : t + 5 * nanosInOneMinute
-  @fact length(trange) --> 6
-  @fact trange[2] --> TimeOfDay("10:31:05")
+  @test length(trange) == 6
+  @test trange[2] == TimeOfDay("10:31:05")
 
-  @fact iszero(TimeOfDay(0)) --> true
-  @fact iszero(TimeOfDay(1)) --> false
-  @fact_throws TimeOfDay(-1)
+  @test iszero(TimeOfDay(0)) == true
+  @test iszero(TimeOfDay(1)) == false
+  @test_throws CTechCommon.NegativeTimeOfDayError{Int64} TimeOfDay(-1)
 
 end
 
 
-facts("fixedsym") do
+@testset "fixedsym" begin
   str = "abc"
 
   n = 6
@@ -117,8 +119,8 @@ facts("fixedsym") do
 
   buf.ptr = 1
   sym = Symbol6(buf)
-  @fact sizeof(sym) --> n
-  @fact string(sym) --> str
+  @test sizeof(sym) == n
+  @test String(sym) == str
 
   n = 8
   buf = IOBuffer(n)
@@ -131,46 +133,46 @@ facts("fixedsym") do
 
   buf.ptr = 1
   sym = Symbol8(buf)
-  @fact sizeof(sym) --> n
-  @fact string(sym) --> str
+  @test sizeof(sym) == n
+  @test String(sym) == str
 end
 
 
-facts("bufferedio") do
+@testset "bufferedio" begin
 end
 
 
-facts("trie") do
+@testset "trie" begin
 end
 
 
-facts("Logger") do
-  @fact log_severity() --> InfoSeverity
+@testset "Logger" begin
+  @test log_severity() == InfoSeverity
   f = open(tempname(),"w")
-  @fact log_io!(f) --> nothing
-  @fact log_io() --> f
+  @test log_io!(f) == nothing
+  @test log_io() == f
   close(f)
   log_severity!(DebugSeverity)
-  @fact log_severity() --> DebugSeverity
+  @test log_severity() == DebugSeverity
   log_severity!(ErrorSeverity)
-  @fact log_severity() --> ErrorSeverity
+  @test log_severity() == ErrorSeverity
   log_severity!(InfoSeverity)
 end
 
 
-facts("markets") do
-  @fact typeof(getFee(EDGX, false)) --> Float64
-  @fact EDGA --> less_than(EDGX)
-  @fact EXCH_SORTED_BY_TAKE_FEE --> [EDGA,EDGX]
+@testset "markets" begin
+  @test typeof(getFee(EDGX, false)) == Float64
+  # @test EDGA < EDGX
+  @test EXCH_SORTED_BY_TAKE_FEE == [EDGA,EDGX]
 
   id = generateOID()
-  @fact generateOID() --> id + 1
-  @fact generateOID() --> id + 2
+  @test generateOID() == id + 1
+  @test generateOID() == id + 2
 
   s = "MSFT"
-  @fact string(Ticker(s)) --> s
-  @fact Ticker(s) --> s
-  @fact Ticker(s) --> less_than("NSFT")
+  @test String(Ticker(s)) == s
+  @test Ticker(s) == s
+  @test Ticker(s) < "NSFT"
 end
 
 type TmpVal; val::Int; end
@@ -183,7 +185,7 @@ type Counter
   Counter() = new(0)
 end
 
-facts("pubsub") do
+@testset "pubsub" begin
   # TODO test: 
   #   various filters
   #   ordering of connections
@@ -201,22 +203,22 @@ facts("pubsub") do
 
   # sub1 should add 1 to c1
   publish(pub1, 1)
-  @fact c1.n --> 1
+  @test c1.n == 1
 
   # now both sub1 and sub2 should be subscribed to pub1, so this should add 9 (2+3+4) twice
   sub2 = subscribe(handlemsg, c1, Filters([:key1, 6, 7, 8]))
   publish(pub1, 2,3,4)
-  @fact c1.n --> 19
+  @test c1.n == 19
 
   # unregistering sub1, so the next pub should add 10 once
   unregister(sub1)
   publish(pub1, 5,5)
-  @fact c1.n --> 29
+  @test c1.n == 29
 
   # sub3 should not be subscribed to pub1
   sub3 = subscribe(handlemsg, c1, Filters([:key2, "word"]))
   publish(pub1, 10)
-  @fact c1.n --> 39
+  @test c1.n == 39
 
 end
 
@@ -225,7 +227,7 @@ const tdiff = TimeOfDay("00:00:30")
 const tstart = TimeOfDay("9:35:30")
 const tstop = TimeOfDay("9:39:15")
 
-facts("scheduler") do
+@testset "scheduler" begin
 
   function periodiccallback(c, x...)
     c.n += sum(x)
@@ -252,9 +254,11 @@ facts("scheduler") do
   schedule(tstart, pub, 1)      # schedules first pub
   stopped = processAllEvents()  # main loop
 
-  @fact stopped --> true
-  @fact NOW() --> tstop
-  @fact c.n --> 15
+  @test stopped == true
+  @test NOW() == tstop
+  @test c.n == 15
 end
 
-FactCheck.exitstatus()
+# end # all
+
+# FactCheck.exitstatus()

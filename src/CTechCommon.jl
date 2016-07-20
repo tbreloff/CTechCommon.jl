@@ -3,60 +3,60 @@ __precompile__()
 module CTechCommon
 
 using QuickStructs
-using ArrayViews
+# using ArrayViews
 
-import Base.Dates
+# import Base.Dates
 using TimeZones
 import Formatting: format
-import FastAnonymous
-using Plots
+# import FastAnonymous
+using RecipesBase
 
 import Base: ==, >, <, >=, <=, +, -, *, /, .*, ./
 
 # ----------------------------------------------------------
 
 export
-  @packedStruct,
-  @createIOMethods,
-  @pretty
+  @packedStruct
+  # @createIOMethods,
+  # @pretty
 
 include("macros.jl")
 
 # ---------------------------------------
 
 export 
-  AVec,
-  AVecF,
-  AVecI,
-  VecF,
-  VecI,
-  AMat,
-  AMatF,
-  AMatI,
-  MatF,
-  MatI,
-  ABytes,
-  Bytes,
-  IntIterable,
-  FloatIterable,
-  foreach,
+  # AVec,
+  # AVecF,
+  # AVecI,
+  # VecF,
+  # VecI,
+  # AMat,
+  # AMatF,
+  # AMatI,
+  # MatF,
+  # MatI,
+  # ABytes,
+  # Bytes,
+  # IntIterable,
+  # FloatIterable,
+  # foreach,
   getith,
   unzip,
-  sizes,
+  # sizes,
   mapf,
-  row,
-  col,
-  column,
-  rows,
-  cols,
-  columns,
-  row!,
-  col!,
-  column!,
-  ncols,
-  nrows,
-  addOnes,
-  mat,
+  # row,
+  # col,
+  # column,
+  # rows,
+  # cols,
+  # columns,
+  # row!,
+  # col!,
+  # column!,
+  # ncols,
+  # nrows,
+  # addOnes,
+  # mat,
   getPctOfInt,
   splitRange,
   splitMatrixRows,
@@ -68,10 +68,10 @@ include("arrays.jl")
 # ---------------------------------------
 
 export
-  wrap,
-  unwrap,
+#   wrap,
+#   unwrap,
   donothing,
-  nop,
+#   nop,
   returntrue
 
 include("misc.jl")

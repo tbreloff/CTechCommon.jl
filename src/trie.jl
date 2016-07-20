@@ -12,7 +12,7 @@ immutable TrieChar
 end
 TrieChar() = TrieChar(0x00)
 
-Base.string(c::TrieChar) = ascii([c.byte])
+# Base.string(c::TrieChar) = ascii([c.byte])
 Base.print(io::IO, c::TrieChar) = print(io, string(c))
 Base.show(io::IO, c::TrieChar) = show(io, string(c))
 Base.hash(c::TrieChar) = c.byte
@@ -21,16 +21,16 @@ Base.hash(c::TrieChar) = c.byte
 
 type TrieNode{T}
   children::Dict{TrieChar,TrieNode{T}}
-  # parentChain::ASCIIString
+  # parentChain::String
   istail::Bool
   data::T  # note: this will be undefined except for tail nodes
 
   # TrieNode{T}(::Type{T}) = new(Dict{TrieChar,TrieNode{T}}(), "", false)
-  # TrieNode{T}(::Type{T}, parentChain::ASCIIString) = new(Dict{TrieChar,TrieNode{T}}(), parentChain, false)
+  # TrieNode{T}(::Type{T}, parentChain::String) = new(Dict{TrieChar,TrieNode{T}}(), parentChain, false)
   TrieNode{T}(::Type{T}) = new(Dict{TrieChar,TrieNode{T}}(), false)
 end
 TrieNode{T}(::Type{T}) = TrieNode{T}(T)
-# TrieNode{T}(::Type{T}, parentChain::ASCIIString) = TrieNode{T}(T, parentChain)
+# TrieNode{T}(::Type{T}, parentChain::String) = TrieNode{T}(T, parentChain)
 
 function maketail!{T}(node::TrieNode{T}, data::T)
   node.istail = true
@@ -68,7 +68,7 @@ function Base.get{T<:FixedLengthSymbol, K}(rootNode::TrieNode{K}, s::T, default:
 end
 
 
-function buildTrie(strings::Vector{ASCIIString})
+function buildTrie(strings::Vector{String})
   rootNode = TrieNode(UID)
 
   for (i,s) in enumerate(strings)
