@@ -34,7 +34,7 @@ function getHoursAdjustmentFromUTC(year::Integer, month::Integer, day::Integer; 
   dt = ZonedDateTime(DateTime(year,month,day), timezone)
 
   # extract the hours offset from UTC
-  round(Int, -dt.zone.offset.std.value / 3600)
+  round(Int, -TimeZones.value(dt.zone.offset) / 3600)
 end
 
 
@@ -105,6 +105,8 @@ end
 
 Base.convert(::Type{TimeOfDay}, str::AbstractString) = TimeOfDay(str)
 
+Base.typemin(::Type{TimeOfDay}) = TimeOfDay(0)
+Base.typemax(::Type{TimeOfDay}) = TimeOfDay(nanosInOneDay)
 
 
 function Base.show(io::IO, timeOfDay::TimeOfDay)
@@ -125,9 +127,9 @@ Base.convert{T<:Number}(::Type{T}, x::TimeOfDay) = T(x.nanosSinceMidnight)
 
 # now for each op, we define the op between TimeOfDay's, then the generic "promote" version of the op will handle conversion
 
-for op in (:(Base.typemax), :(Base.typemin))
-  @eval $op(::Type{TimeOfDay}) = TimeOfDay($op(Int64))
-end
+# for op in (:(Base.typemax), :(Base.typemin))
+#   @eval $op(::Type{TimeOfDay}) = TimeOfDay($op(Int64))
+# end
 for op in (:<, :>, :(==), :<=, :>=, :(Base.isless))
   @eval $op(t1::TimeOfDay, t2::TimeOfDay) = $op(t1.nanosSinceMidnight, t2.nanosSinceMidnight)
 end
