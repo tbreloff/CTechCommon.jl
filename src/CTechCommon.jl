@@ -3,12 +3,10 @@ __precompile__()
 module CTechCommon
 
 using QuickStructs
-# using ArrayViews
 
 # import Base.Dates
 using TimeZones
 import Formatting: format
-# import FastAnonymous
 using RecipesBase
 
 import Base: ==, >, <, >=, <=, +, -, *, /, .*, ./
@@ -112,6 +110,10 @@ export
   getPackedStructSize
 
 include("bufio.jl")
+
+export
+  MMapIO
+include("mmapio.jl")
 
 # ---------------------------------------
 

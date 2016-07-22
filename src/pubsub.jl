@@ -44,13 +44,11 @@ Filters(filterlists::Vector...) = Filters(FilterMap(map(x -> (Symbol(x[1]), Filt
 # a Publisher is set up from the broadcast side
 type Publisher{F<:Function}
   f::F
-  # anonfuns::Vector{FastAnonymous.Fun}
   listeners::Vector{Any}
   filters::Filters
 end
 Publisher(f::Function, filters::Filters = Filters()) = register(Publisher(f, Any[], filters))
 
-# Base.isempty(publisher::Publisher) = isempty(publisher.anonfuns)
 Base.isempty(publisher::Publisher) = isempty(publisher.listeners)
 
 # call this to actually trigger the callbacks
@@ -58,9 +56,6 @@ function publish(publisher::Publisher, args...)
     for listener in publisher.listeners
         publisher.f(listener, args...)
     end
-  # for anonfun in publisher.anonfuns
-  #   anonfun(args)
-  # end
 end
 
 # -----------------------------------------------------------------------
@@ -69,18 +64,11 @@ end
 immutable Subscriber{F<:Function,L}
   f::F
   listener::L
-  # anonfun::FastAnonymous.Fun  # this is the function that's actually called
   filters::Filters
 end
 
 # call this to start listening
 function subscribe(f::Function, listener, filters::Filters = Filters())
-  # # create a placeholder anonymous function, then swap out the 
-  # # function and listener before it gets compiled
-  # anonfun = FastAnonymous.@anon args -> tmpf(0, args...)
-  # anonfun.ast.args[2].args[1] = f
-  # anonfun.ast.args[2].args[2] = listener
-
   register(Subscriber(f, listener, filters))
 end
 
@@ -108,7 +96,6 @@ function register(subscriber::Subscriber)
   # match subscriber filters to publisher's filters... add this subscriber's listener to matching publishers
   for publisher in HUB.publishers
     if matches(publisher, subscriber)
-      # push!(publisher.anonfuns, subscriber.anonfun)
       push!(publisher.listeners, subscriber.listener)
     end
   end
