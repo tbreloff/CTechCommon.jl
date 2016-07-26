@@ -74,6 +74,41 @@ end
 
 # -----------------------------------------------------------------------
 
+"""
+A wrapper to schedule method calls for the future.  For example, a minute timer:
+
+```
+    cb = Callback(calculate, my_obj)
+    schedule(TimeOfDay("9:31") : TimeOfDay("00:01") : stopTime, cb)
+```
+
+This example will call `calculate(my_obj)` once per minute in the simulation.
+"""
+immutable Callback
+    pub::Publisher
+    subs::Vector{Subscriber}
+end
+
+function Callback(f::Function, objs...)
+    filters = Filters(vcat(:obj, objs))
+    subs = [subscribe(f, obj, filters) for obj in objs]
+    pub = Publisher(f, filters)
+    Callback(pub, subs)
+end
+
+publish(cb::Callback, args...) = publish(cb.pub, args...)
+
+# # subscribe ourselves
+# filter = Filters([:obj, top])
+# subscribe(calculate, top, filter)
+
+# # set up a timer with the same callback function and filter (I'll wrap this functionality eventually)
+# timer = Publisher(calculate, filter)
+# schedule(TimeOfDay("9:31") : TimeOfDay("00:01") : stopTime, timer)
+
+
+# -----------------------------------------------------------------------
+
 immutable Hub
   subscribers::Set{Subscriber}
   publishers::Set{Publisher}

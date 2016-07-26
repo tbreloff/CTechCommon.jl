@@ -108,6 +108,8 @@ function Base.schedule(time::TimeOfDay, pub::Publisher, args...)
 	event
 end
 
+Base.schedule(time::TimeOfDay, cb::Callback, args...) = schedule(time, cb.pub, args...)
+
 # call this method from the "main loop"... it either:
 #		1) runs the function immediately, or
 #		2) schedules the event and clears the queue up to and including that event

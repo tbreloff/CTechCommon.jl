@@ -186,7 +186,8 @@ export
   Publisher,
   publish,
   subscribe,
-  unregister
+  unregister,
+  Callback
 
 include("pubsub.jl")
 

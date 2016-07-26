@@ -108,13 +108,18 @@ Base.convert(::Type{TimeOfDay}, str::AbstractString) = TimeOfDay(str)
 Base.typemin(::Type{TimeOfDay}) = TimeOfDay(0)
 Base.typemax(::Type{TimeOfDay}) = TimeOfDay(nanosInOneDay)
 
+function hmsu(t::TimeOfDay)
+    secsSinceMidnight, nanos = divrem(t.nanosSinceMidnight, nanosInOneSecond)
+    hours, hourrem = divrem(secsSinceMidnight, secondsInOneHour)
+    minutes, seconds = divrem(hourrem, secondsInOneMinute)
+    microseconds = div(nanos, millisInOneSecond)
+    hours, minutes, seconds, microseconds
+end
 
-function Base.show(io::IO, timeOfDay::TimeOfDay)
-  secsSinceMidnight, nanos = divrem(timeOfDay.nanosSinceMidnight, nanosInOneSecond)
-  hours, hourrem = divrem(secsSinceMidnight, secondsInOneHour)
-  minutes, seconds = divrem(hourrem, secondsInOneMinute)
-  microseconds = div(nanos, millisInOneSecond)
-  print(io, lpad(hours,2,"0"), ":", lpad(minutes,2,"0"), ":", lpad(seconds,2,"0"), ".", lpad(microseconds,6,"0"))
+function Base.show(io::IO, t::TimeOfDay)
+    # hours, minutes, seconds, microseconds = hmsu(t)
+    @printf(io,"%d:%02d:%02d.%06d",hmsu(t)...)
+    # print(io, lpad(hours,2,"0"), ":", lpad(minutes,2,"0"), ":", lpad(seconds,2,"0"), ".", lpad(microseconds,6,"0"))
 end
 # @createIOMethods TimeOfDay
 
@@ -142,3 +147,13 @@ Base.colon(start::TimeOfDay, step::TimeOfDay, stop::TimeOfDay) = map(TimeOfDay, 
 Base.colon{T<:Number}(start::TimeOfDay, step::T, stop::TimeOfDay) = colon(start, TimeOfDay(step), stop)
 
 iszero(t::TimeOfDay) = t.nanosSinceMidnight == 0
+
+function timeofday_formatter(hrs::Number)
+    h,m,s,u = hmsu(TimeOfDay(hrs * nanosInOneHour))
+    @sprintf("%d:%02d:%02d",h,m,s)
+end
+
+hours(t::TimeOfDay) = Float64(t) / nanosInOneHour
+
+@recipe f{T<:AbstractVector{TimeOfDay}}(::Type{T}, a::T) = (xformatter := timeofday_formatter; map(hours, a))
+@recipe f{T<:AbstractMatrix{TimeOfDay}}(::Type{T}, a::T) = (xformatter := timeofday_formatter; map(hours, a))

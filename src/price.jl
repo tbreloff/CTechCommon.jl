@@ -65,3 +65,6 @@ for op in (:+, :-, :*, :/, :.*, :./, :dot)
   @eval $op(p1::Number, p2::Price) = Price($op(Float64(p1), Float64(p2)), p2.precision)
   @eval $op(p1::Price, p2::Price) = Price($op(Float64(p1), Float64(p2)), max(p1.precision, p2.precision))
 end
+
+@recipe f{T<:AbstractVector{Price}}(::Type{T}, a::T) = map(Float64, a)
+@recipe f{T<:AbstractMatrix{Price}}(::Type{T}, a::T) = map(Float64, a)

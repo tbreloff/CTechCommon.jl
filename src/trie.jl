@@ -39,15 +39,15 @@ function TrieNode{K}(::Type{K}, strings::Vector{String})
     rootNode
 end
 
-function maketail!{T}(node::TrieNode{T}, data::T)
-    node.istail = true
-    node.data = data
-    return
-end
+# function maketail!{T}(node::TrieNode{T}, data::T)
+#     node.istail = true
+#     node.data = data
+#     return
+# end
 
 
-function Base.get{T<:FixedLengthSymbol, K}(rootNode::TrieNode{K}, s::T, default::K)
-    node::TrieNode{K}
+function Base.get{T<:Union{String,FixedLengthSymbol}, K}(rootNode::TrieNode{K}, s::T, default::K)
+    local node::TrieNode{K}
     node = rootNode
 
     for i in 1:sizeof(T)
@@ -67,14 +67,15 @@ function Base.get{T<:FixedLengthSymbol, K}(rootNode::TrieNode{K}, s::T, default:
         # end
     end
 
-    if node.istail
-        return node.data
-    else
+    # if node.istail
+    if isnull(node.data)
         return default
+    else
+        return get(node.data)
     end
 end
 
-function Base.get!{T<:FixedLengthSymbol, K}(rootNode::TrieNode{K}, s::T, default::K)
+function Base.get!{T<:Union{String,FixedLengthSymbol}, K}(rootNode::TrieNode{K}, s::T, default::K)
     node = rootNode
     for b in s.data
         # we're done if null char or space
@@ -87,7 +88,7 @@ function Base.get!{T<:FixedLengthSymbol, K}(rootNode::TrieNode{K}, s::T, default
         if haskey(node.children, c)
             node = node.children[c]
         else
-            newnode = TrieNode(K)
+            newnode = TrieNode{K}()
             node.children[c] = newnode
             node = newnode
         end
