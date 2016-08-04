@@ -130,6 +130,8 @@ function schedule_do(time::TimeOfDay, pub::Publisher, args...)
 	false
 end
 
+schedule_do(time::TimeOfDay, cb::Callback, args...) = schedule_do(time, cb.pub, args...)
+
 
 # --------------------------------------------------------------
 

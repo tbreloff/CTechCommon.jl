@@ -96,6 +96,14 @@ function Callback(f::Function, objs...)
     Callback(pub, subs)
 end
 
+# function Callback(f::Function, args...)
+#     obj = args[1]
+#     filters = Filters(vcat(:obj, obj))
+#     subs = [subscribe(f, obj, filters) for obj in args]
+#     pub = Publisher(f, filters)
+#     Callback(pub, subs)
+# end
+
 publish(cb::Callback, args...) = publish(cb.pub, args...)
 
 # # subscribe ourselves
