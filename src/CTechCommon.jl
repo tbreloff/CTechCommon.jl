@@ -196,6 +196,7 @@ include("pubsub.jl")
 export
   NOW,
   schedule_do,
+  process_until,
   initScheduler,
   stopScheduler,
   processAllEvents

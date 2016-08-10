@@ -100,6 +100,15 @@ stopScheduler(time::TimeOfDay = zero(TimeOfDay)) = (insertSorted!(SCHEDULER.even
 processEvent(event::NormalEvent) = (publish(SCHEDULER, event); false)
 processEvent(event::StopEvent) = (SCHEDULER.timeOfLastEvent = event.time; true)
 
+function process_until(time::TimeOfDay)
+	# clear out the queue until the current time
+	while !isQueueEmpty(SCHEDULER) && time >= firstTimeInQueue(SCHEDULER)
+		nextevent = shift!(SCHEDULER.eventList)  # gets the first in the list
+		processEvent(nextevent) && return true # stopped... return true
+	end
+	return false
+end
+
 
 # these functions should be called from non-main-loop areas... schedule the event, and don't worry about how it gets run
 function Base.schedule(time::TimeOfDay, pub::Publisher, args...)
@@ -119,11 +128,13 @@ Base.schedule(time::TimeOfDay, cb::Callback, args...) = schedule(time, cb.pub, a
 #				main event stream as quickly as possible
 function schedule_do(time::TimeOfDay, pub::Publisher, args...)
 
-	# clear out the queue until the current time
-	while !isQueueEmpty(SCHEDULER) && time >= firstTimeInQueue(SCHEDULER)
-		nextevent = shift!(SCHEDULER.eventList)  # gets the first in the list
-		processEvent(nextevent) && return true # stopped... return true
-	end
+	# # clear out the queue until the current time
+	# while !isQueueEmpty(SCHEDULER) && time >= firstTimeInQueue(SCHEDULER)
+	# 	nextevent = shift!(SCHEDULER.eventList)  # gets the first in the list
+	# 	processEvent(nextevent) && return true # stopped... return true
+	# end
+	process_until(time) && return true
+
 
 	# now publish it
 	publish(SCHEDULER, time, pub, args...)
