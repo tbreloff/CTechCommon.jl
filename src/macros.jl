@@ -110,3 +110,46 @@ end
 #   end
 # end
 
+# recurse
+function replace_syms(expr::Expr, names, obj)
+    for i in eachindex(expr.args)
+        expr.args[i] = replace_syms(expr.args[i], names, obj)
+    end
+    expr
+end
+
+# replace?
+function replace_syms(s::Symbol, names, obj)
+    if s in names
+        :($(obj).$(s))
+    else
+        s
+    end
+end
+
+# identity
+replace_syms(x, names, obj) = x
+
+export @with
+
+"""
+Recursively replace all occurences of a field with dot notation:
+
+```julia
+type T
+    a
+    b
+end
+
+@with t::T a = b + 5
+# becomes:
+t.a = t.b + 5
+```
+"""
+macro with(typeexpr::Expr, body::Expr)
+    @assert typeexpr.head == :(::)
+    @assert length(typeexpr.args) == 2
+    obj, objtype = typeexpr.args
+    names = fieldnames(eval(Main, objtype))
+    esc(replace_syms(body, names, obj))
+end
