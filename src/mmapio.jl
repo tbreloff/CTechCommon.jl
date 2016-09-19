@@ -13,6 +13,7 @@ Base.show(io::IO, mmio::MMapIO) = "MMapIO{$(length(mmio.buf)) @ $(mmio.pos)}"
 
 Base.eof(mmio::MMapIO) = eof(mmio.io) #mmio.pos >= length(mmio.buf)
 Base.read{T}(mmio::MMapIO, ::Type{T}) = read(mmio.io, T)
+Base.read(mmio::MMapIO, x) = read(mmio.io, x)
 
 # function Base.read!{T}(mmio::MMapIO, ::Type{T})
 # 	struct_size = getPackedStructSize(T)
@@ -24,4 +25,3 @@ Base.read{T}(mmio::MMapIO, ::Type{T}) = read(mmio.io, T)
 # 	mmio.pos += struct_size
 # 	obj
 # end
-
